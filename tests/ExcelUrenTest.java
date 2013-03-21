@@ -20,26 +20,25 @@ import java.util.List;
 public class ExcelUrenTest {
     static String dirXls = "../../uren2012";
 
-    static Excel excel;
+    static ExcelUren uren;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        excel = new Excel(dirXls + "/CTS47.xls");
-
+        uren = new ExcelUren(dirXls, "CTS47.xls");
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
 
-        excel.sluitWerkblad();
+        uren.sluitWerkblad();
     }
 
     @Test
     public void testUren() throws Exception {
         try {
             //Get iterator to all the rows in current sheet
-            Iterator<Row> rowIterator = excel.getWerkblad().iterator();
-            System.out.println(excel.getWerkblad().getSheetName());
+            Iterator<Row> rowIterator = uren.getWerkblad().iterator();
+            System.out.println(uren.getWerkblad().getSheetName());
 
             //Get iterator to all cells of current row
             Row row;
@@ -49,7 +48,7 @@ public class ExcelUrenTest {
                 cellIterator = row.cellIterator();
                 while (cellIterator.hasNext()) {
                     Cell cell = cellIterator.next();
-                    System.out.print(excel.celWaarde(cell));
+                    System.out.print(uren.celWaarde(cell));
                 }
                 System.out.println("");
             }
@@ -62,29 +61,29 @@ public class ExcelUrenTest {
 
     @Test
     public void testCel() throws Exception {
-        HSSFRow row = excel.getRegel(56);
+        HSSFRow row = uren.getRegel(56);
         Cell cell=row.getCell(0);
-        System.out.println(excel.celWaarde(cell));
+        System.out.println(uren.celWaarde(cell));
 
         cell=row.getCell(2);
-        double start = Double.parseDouble(excel.celWaarde(cell));
-        System.out.println(start + " - " + excel.tijdNaarTekst(start));
+        double start = Double.parseDouble(uren.celWaarde(cell));
+        System.out.println(start + " - " + uren.tijdNaarTekst(start));
 
-        row=excel.getRegel(57);
+        row=uren.getRegel(57);
         cell=row.getCell(2);
-        double einde = Double.parseDouble(excel.celWaarde(cell));
-        System.out.println(einde + " - " + excel.tijdNaarTekst(einde));
+        double einde = Double.parseDouble(uren.celWaarde(cell));
+        System.out.println(einde + " - " + uren.tijdNaarTekst(einde));
 
-        System.out.println(einde-start + " - " + excel.tijdNaarTekst(einde-start));
+        System.out.println(einde-start + " - " + uren.tijdNaarTekst(einde-start));
     }
 
     @Test
     public void testLeesOmschrijvingen() throws Exception {
-        Iterator<Row> rowIterator = excel.getWerkblad().iterator();
+        Iterator<Row> rowIterator = uren.getWerkblad().iterator();
         while(rowIterator.hasNext()) {
             Row row = rowIterator.next();
             Cell cell = row.getCell(0);
-            System.out.printf("%-3s %s\n", row.getRowNum() + 1, excel.celWaarde(cell));
+            System.out.printf("%-3s %s\n", row.getRowNum() + 1, uren.celWaarde(cell));
         }
     }
 
@@ -103,17 +102,16 @@ public class ExcelUrenTest {
 
     @Test
     public void testLeesWerktijden() throws Exception {
-        List<Werkdag> tijden = excel.leesWerkTijden();
+        List<Werkdag> tijden = uren.leesWerkTijden();
         for (Werkdag werkdag: tijden) {
             System.out.printf("%3d %3d %3d\n", werkdag.getDag(), werkdag.getTijd_in(), werkdag.getTijd_uit());
-            System.out.printf("%3d %s %s\n", werkdag.getDag(), excel.tijdNaarTekst(werkdag.getTijd_in()), excel.tijdNaarTekst(werkdag.getTijd_uit()));
+            System.out.printf("%3d %s %s\n", werkdag.getDag(), uren.tijdNaarTekst(werkdag.getTijd_in()), uren.tijdNaarTekst(werkdag.getTijd_uit()));
         }
 
     }
 
     @Test
     public void testLeesXlsnamen() throws Exception {
-        ExcelUrenView uren = new ExcelUrenView();
 
         String[] files = uren.leesXlsNamen(dirXls);
         Arrays.sort(files);
@@ -126,20 +124,20 @@ public class ExcelUrenTest {
 
     @Test
     public void testTotaliseerProject() throws Exception {
-        int totaal = excel.totaliseerDuur("Diversen ongeclassificeerd");
-        Assert.assertEquals("totaliseer", totaal, 175);
+        float totaal = uren.geefProjectDuur("Diversen ongeclassificeerd");
+        Assert.assertEquals("totaliseer", 176, uren.nummerNaarMinuten(totaal));
 
-        totaal = excel.totaliseerDuur("verlof");
-        Assert.assertEquals("totaliseer", totaal, 540);
+        totaal = uren.geefProjectDuur("verlof");
+        Assert.assertEquals("totaliseer", 0, uren.nummerNaarMinuten(totaal));
     }
 
     @Test
     public void testZoekProjectregel() throws Exception {
-        int rij = excel.zoekProjectregel("HetHIS naconversie");
-        Assert.assertEquals("projectregel", rij, 17);
+        int rij = uren.zoekProjectregel("HetHIS naconversie");
+        Assert.assertEquals("projectregel", 17, rij);
 
-        rij = excel.zoekProjectregel("Diversen ongeclassificeerd");
-        Assert.assertEquals("projectregel", rij, 39);
+        rij = uren.zoekProjectregel("Diversen ongeclassificeerd");
+        Assert.assertEquals("projectregel", 39, rij);
 
     }
 
@@ -162,28 +160,26 @@ public class ExcelUrenTest {
 
     @Test
     public void testAlleVerlof() throws Exception {
-        ExcelUrenView uren = new ExcelUrenView();
-
         String[] files = uren.leesXlsNamen(dirXls);
         Arrays.sort(files);
 
         int granttotal = 0;
         for (String xlsFile: files) {
-            excel = new Excel(dirXls + "/" + xlsFile);
-            int totaal = excel.totaliseerDuur("verlof");
-            float dagtotaal = excel.totaliseerDagtotaal() * 24;
+            uren = new ExcelUren(dirXls, xlsFile);
+            float totaal = uren.geefProjectDuur("verlof");
+            float dagtotaal = uren.geefDagtotaal() * 24;
             granttotal += totaal;
-            System.out.printf("file: %s, verlofuren: %4d, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
-            excel.sluitWerkblad();
+            System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
+            uren.sluitWerkblad();
         }
         System.out.printf("Totaal: verlofuren: %d, verlofdagen: %d", granttotal / 60, granttotal / 60 / 9);
     }
 
     @Test
     public void testDatumUitWeeknr() throws Exception {
-        String[] dagen = excel.geefWeekDatums(23, 2012);
-        Assert.assertEquals("begin", dagen[0], "04-06-2012");
-        Assert.assertEquals("einde", dagen[1], "10-06-2012");
+        String[] dagen = uren.geefWeekDatums(23, 2012);
+        Assert.assertEquals("begin", "04-06-2012", dagen[0]);
+        Assert.assertEquals("einde", "10-06-2012", dagen[1]);
         System.out.println(dagen[0] + " - " + dagen[1]);
 
     }
