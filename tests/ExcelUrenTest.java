@@ -6,7 +6,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -19,11 +18,9 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class ExcelUrenTest {
-    static String dirXls = "../../uren";
+    static String dirXls = "../../uren2012";
 
     static Excel excel;
-
-    static FileInputStream file;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -118,7 +115,7 @@ public class ExcelUrenTest {
     public void testLeesXlsnamen() throws Exception {
         ExcelUren uren = new ExcelUren();
 
-        String[] files = uren.leesXlsnamen(dirXls);
+        String[] files = uren.leesXlsNamen(dirXls);
         Arrays.sort(files);
 
         System.out.println("Gevonden: " + files.length);
@@ -167,7 +164,7 @@ public class ExcelUrenTest {
     public void testAlleVerlof() throws Exception {
         ExcelUren uren = new ExcelUren();
 
-        String[] files = uren.leesXlsnamen(dirXls);
+        String[] files = uren.leesXlsNamen(dirXls);
         Arrays.sort(files);
 
         int granttotal = 0;
