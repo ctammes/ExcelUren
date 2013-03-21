@@ -1,7 +1,5 @@
 import javax.swing.*;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,29 +10,27 @@ import java.util.regex.Pattern;
  */
 public class ExcelUren {
 
-    private String dirXls = "../../uren2012";
-
-    private Excel excel;
-
-    public String[] leesXlsNamen(String dirXls) {
-        File map = new File(dirXls);
-        String[] files = map.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File map, String fileName) {
-                return Pattern.matches("cts\\d+\\.xls", fileName.toLowerCase());
-            }
-        });
-        return files;
-    }
+    // initialiseer logger
+    public static Logger log = Logger.getLogger(ExcelUren.class.getName());
 
     public static void main(String[] args) {
+        String logDir = ".";
+        String logNaam = "ExcelUren.log";
+
+//        try {
+//            MijnLog mijnlog = new MijnLog(logDir, logNaam, true);
+//            log = mijnlog.getLog();
+//            log.setLevel(Level.INFO);
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
+
         JFrame frame = new JFrame("ExcelUrenView");
         frame.setContentPane(new ExcelUrenView().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
     }
-
 
 
 }

@@ -113,7 +113,7 @@ public class ExcelUrenTest {
 
     @Test
     public void testLeesXlsnamen() throws Exception {
-        ExcelUren uren = new ExcelUren();
+        ExcelUrenView uren = new ExcelUrenView();
 
         String[] files = uren.leesXlsNamen(dirXls);
         Arrays.sort(files);
@@ -162,7 +162,7 @@ public class ExcelUrenTest {
 
     @Test
     public void testAlleVerlof() throws Exception {
-        ExcelUren uren = new ExcelUren();
+        ExcelUrenView uren = new ExcelUrenView();
 
         String[] files = uren.leesXlsNamen(dirXls);
         Arrays.sort(files);
