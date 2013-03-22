@@ -12,7 +12,7 @@ import java.util.TreeSet;
  * Time: 8:59
  * To change this template use File | Settings | File Templates.
  */
-public class ExcelUrenView {
+public class MijnUren {
 
     protected JPanel mainPanel;
 
@@ -30,7 +30,7 @@ public class ExcelUrenView {
     private String dirXls = "/home/chris/IdeaProjects/uren2012";
     private String[] files = null;
 
-    public ExcelUrenView() {
+    public MijnUren() {
 
         txtExcelDir.setText(dirXls);
 
@@ -99,6 +99,16 @@ public class ExcelUrenView {
         });
     }
 
+    public static void main(String[] args) {
+
+        JFrame frame = new JFrame("MijnUren");
+        frame.setContentPane(new MijnUren().mainPanel);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        frame.setSize();
+        frame.pack();
+        frame.setVisible(true);
+
+    }
 
 
 }
