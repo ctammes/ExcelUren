@@ -1,14 +1,11 @@
+import nl.ctammes.common.Excel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,36 +16,22 @@ import java.util.regex.Pattern;
  */
 public class ExcelUren extends Excel {
 
-    private final int MAX_ROWS = 64;
-    private final String START_TEKST = "Project";
-    private final String STOP_TEKST = "Totaal";
-    private final String START_WERK = "tijd_in";
-    private final String STOP_WERK = "tijd_uit";
-
-    // initialiseer logger
-    public static Logger log = Logger.getLogger(ExcelUren.class.getName());
+    public static final int MAX_ROWS = 64;
+    public static final String START_TEKST = "Project";     // projecten beginnen hierna (kolom A)
+    public static final String STOP_TEKST = "Totaal";       // projecten eindigen hiervoor (kolom A)
+    public static final String START_WERK = "tijd_in";      // regel met start werktijd (kolom A)
+    public static final String STOP_WERK = "tijd_uit";      // regel met stop werktijd (kolom A)
+    public static final int URENPERDAG = 9;                 // aantal gewerkte uren per dag
+    public static final String URENMASK = "cts\\d{2}\\.xls";  // filemask voor uren files
 
     public ExcelUren(String logDir, String logNaam) {
         super(logDir, logNaam);
     }
 
-
-
-//        String logDir = ".";
-//        String logNaam = "ExcelUren.log";
-//        try {
-//            MijnLog mijnlog = new MijnLog(logDir, logNaam, true);
-//            log = mijnlog.getLog();
-//            log.setLevel(Level.INFO);
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//        }
-
-
     /**
      * Zoek de rij met de opgegeven projectnaam
      * @param project
-     * @return rijnummer
+     * @return
      */
     public int zoekProjectregel(String project) {
 
@@ -56,7 +39,7 @@ public class ExcelUren extends Excel {
         int rij = -1;
         while(rowIterator.hasNext()) {
             Row row = rowIterator.next();
-            Cell cell = row.getCell(1);
+            Cell cell = row.getCell(0);
             if (celWaarde(cell).toLowerCase().equals(project.toLowerCase())) {
                 rij = row.getRowNum();
                 break;
@@ -65,15 +48,42 @@ public class ExcelUren extends Excel {
         return rij;
     }
 
-    public float geefProjectDuur(String project) {
 
-        int rij = zoekProjectregel(project);
+    /**
+     * Zoek de rij met de opgegeven taaknaam
+     * @param taak
+     * @return rijnummer
+     */
+    public int zoekTaakregel(String taak) {
+
+        Iterator<Row> rowIterator = getWerkblad().iterator();
+        int rij = -1;
+        while(rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Cell cell = row.getCell(1);
+            if (celWaarde(cell).toLowerCase().equals(taak.toLowerCase())) {
+                rij = row.getRowNum();
+                break;
+            }
+        }
+        return rij;
+    }
+
+    /**
+     * Geef de weekduur van een project in minuten
+     * (0,375 is 9 uur)
+     * @param project
+     * @return
+     */
+    public float geefTaakDuur(String project) {
+
+        int rij = zoekTaakregel(project);
 
         float totaal = 0;
         if (rij >= 0) {
             String waarde = leesCel(rij, Weekdagen.TOTAAL.get());
             if (!waarde.equals("")) {
-                totaal = Float.parseFloat(leesCel(rij, Weekdagen.TOTAAL.get()));
+                totaal = Float.parseFloat(waarde) * 24 * 60;
             }
         }
 
@@ -82,27 +92,18 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * Geef dagtotaal van dit werkblad
+     * Geef gewerkte uren van dit werkblad
      * @return
      */
     public float geefDagtotaal() {
 
-        Iterator<Row> rowIterator = getWerkblad().iterator();
-        int rij = -1;
-        while(rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            Cell cell = row.getCell(0);
-            if (celWaarde(cell).toLowerCase().equals("dagtotaal")) {
-                rij = row.getRowNum();
-                break;
-            }
-        }
+        int rij = zoekProjectregel("dagtotaal");
 
         float totaal = 0;
         if (rij >= 0) {
             String waarde = leesCel(rij, Weekdagen.TOTAAL.get());
             if (!waarde.equals("")) {
-                totaal = Float.parseFloat(leesCel(rij, Weekdagen.TOTAAL.get()));
+                totaal = Float.parseFloat(waarde) * 24;
             }
         }
 
@@ -120,7 +121,7 @@ public class ExcelUren extends Excel {
         while(rowIterator.hasNext()) {
             Row row = rowIterator.next();
             Cell cell = row.getCell(0);
-            if (celWaarde(cell).equals("tijd_in")) {
+            if (celWaarde(cell).equals(START_WERK)) {
                 int rij = row.getRowNum();
                 for (int dag = Weekdagen.MA.get(); dag <= Weekdagen.VR.get(); dag++) {
 
@@ -132,22 +133,6 @@ public class ExcelUren extends Excel {
             }
         }
         return werkdagen;
-    }
-
-    /**
-     * Lees alle xls-namen (CTSnn.xls) uit de opgegeven direcctory
-     * @param dirXls
-     * @return
-     */
-    public String[] leesXlsNamen(String dirXls) {
-        File map = new File(dirXls);
-        String[] files = map.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File map, String fileName) {
-                return Pattern.matches("cts\\d+\\.xls", fileName.toLowerCase());
-            }
-        });
-        return files;
     }
 
     /**

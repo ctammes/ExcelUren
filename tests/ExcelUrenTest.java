@@ -1,4 +1,5 @@
 import junit.framework.Assert;
+import nl.ctammes.common.Diversen;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -113,7 +114,7 @@ public class ExcelUrenTest {
     @Test
     public void testLeesXlsnamen() throws Exception {
 
-        String[] files = uren.leesXlsNamen(dirXls);
+        String[] files = Diversen.leesFileNamen(dirXls, ExcelUren.URENMASK);
         Arrays.sort(files);
 
         System.out.println("Gevonden: " + files.length);
@@ -124,19 +125,19 @@ public class ExcelUrenTest {
 
     @Test
     public void testTotaliseerProject() throws Exception {
-        float totaal = uren.geefProjectDuur("Diversen ongeclassificeerd");
+        float totaal = uren.geefTaakDuur("Diversen ongeclassificeerd");
         Assert.assertEquals("totaliseer", 176, uren.nummerNaarMinuten(totaal));
 
-        totaal = uren.geefProjectDuur("verlof");
+        totaal = uren.geefTaakDuur("verlof");
         Assert.assertEquals("totaliseer", 0, uren.nummerNaarMinuten(totaal));
     }
 
     @Test
     public void testZoekProjectregel() throws Exception {
-        int rij = uren.zoekProjectregel("HetHIS naconversie");
+        int rij = uren.zoekTaakregel("HetHIS naconversie");
         Assert.assertEquals("projectregel", 17, rij);
 
-        rij = uren.zoekProjectregel("Diversen ongeclassificeerd");
+        rij = uren.zoekTaakregel("Diversen ongeclassificeerd");
         Assert.assertEquals("projectregel", 39, rij);
 
     }
@@ -160,14 +161,14 @@ public class ExcelUrenTest {
 
     @Test
     public void testAlleVerlof() throws Exception {
-        String[] files = uren.leesXlsNamen(dirXls);
+        String[] files = Diversen.leesFileNamen(dirXls, ExcelUren.URENMASK);
         Arrays.sort(files);
 
         int granttotal = 0;
         for (String xlsFile: files) {
             uren = new ExcelUren(dirXls, xlsFile);
-            float totaal = uren.geefProjectDuur("verlof");
-            float dagtotaal = uren.geefDagtotaal() * 24;
+            float totaal = uren.geefTaakDuur("verlof") / 60;
+            float dagtotaal = uren.geefDagtotaal();
             granttotal += totaal;
             System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
             uren.sluitWerkblad();

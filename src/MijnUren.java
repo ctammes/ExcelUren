@@ -1,9 +1,14 @@
+import nl.ctammes.common.Diversen;
+import nl.ctammes.common.MijnLog;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,7 +43,7 @@ public class MijnUren {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 // lees en sorteer alle xls-bestanden
-                files = uren.leesXlsNamen(txtExcelDir.getText());
+                files = Diversen.leesFileNamen(txtExcelDir.getText(), ExcelUren.URENMASK);
                 Arrays.sort(files);
 
                 if (files.length > 0) {
@@ -76,11 +81,11 @@ public class MijnUren {
                 DefaultListModel listModel = new DefaultListModel();
                 for (String xlsFile: files) {
                     uren = new ExcelUren(dirXls, xlsFile);
-                    float totaal = uren.geefProjectDuur(project);
-                    float dagtotaal = uren.geefDagtotaal() * 24;
+                    float totaal = uren.geefTaakDuur(project);
+                    float dagtotaal = uren.geefDagtotaal();
                     if (project.equals("verlof") || (!project.equals("verlof") && totaal > 0)) {
                         granttotal += totaal;
-                        String tekst = String.format("file: %s, minuten: %4d, uren: %2.1f, dagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / 9, dagtotaal);
+                        String tekst = String.format("file: %s, minuten: %6.1f, uren: %3.1f, dagen: %4.2f, uren gewerkt: %2.0f \n", xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / uren.URENPERDAG, dagtotaal);
                         listModel.addElement(tekst);
                     }
                     uren.sluitWerkblad();
@@ -101,6 +106,19 @@ public class MijnUren {
 
     public static void main(String[] args) {
 
+        // initialiseer logger
+        Logger log = Logger.getLogger(MijnUren.class.getName());
+
+        String logDir = ".";
+        String logNaam = "MijnUren.log";
+        try {
+            MijnLog mijnlog = new MijnLog(logDir, logNaam, true);
+            log = mijnlog.getLog();
+            log.setLevel(Level.INFO);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
         JFrame frame = new JFrame("MijnUren");
         frame.setContentPane(new MijnUren().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -109,6 +127,7 @@ public class MijnUren {
         frame.setVisible(true);
 
     }
+
 
 
 }
