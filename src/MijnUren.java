@@ -1,9 +1,11 @@
 import nl.ctammes.common.Diversen;
+import nl.ctammes.common.MijnIni;
 import nl.ctammes.common.MijnLog;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
@@ -32,7 +34,10 @@ public class MijnUren {
 
     private ExcelUren uren;
 
-    private String dirXls = "/home/chris/IdeaProjects/uren2012";
+    private static MijnIni ini = null;
+    private static String inifile = "MijnUren.ini";
+
+    private static String dirXls = "/home/chris/IdeaProjects/uren2012";
     private String[] files = null;
 
     public MijnUren() {
@@ -119,15 +124,25 @@ public class MijnUren {
             System.out.println(e.getMessage());
         }
 
+        // inifile lezen of initieel vullen
+        if (new File(inifile).exists()) {
+            ini = new MijnIni(inifile);
+            dirXls = ini.lees("Algemeen", "dirxls");
+        } else {
+            ini = new MijnIni(inifile);
+            ini.schrijf("Algemeen", "dirxls", dirXls);
+            log.info("Inifile " + inifile + " aangemaakt en gevuld");
+        }
+
         JFrame frame = new JFrame("MijnUren");
         frame.setContentPane(new MijnUren().mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLocation(200,200);
 //        frame.setSize();
         frame.pack();
         frame.setVisible(true);
 
     }
-
 
 
 }
