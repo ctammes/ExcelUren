@@ -7,7 +7,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -106,7 +109,7 @@ public class ExcelUrenTest {
         List<Werkdag> tijden = uren.leesWerkTijden();
         for (Werkdag werkdag: tijden) {
             System.out.printf("%3d %3d %3d\n", werkdag.getDag(), werkdag.getTijd_in(), werkdag.getTijd_uit());
-            System.out.printf("%3d %s %s\n", werkdag.getDag(), uren.tijdNaarTekst(werkdag.getTijd_in()), uren.tijdNaarTekst(werkdag.getTijd_uit()));
+            System.out.printf("%3d %s %s %s\n", werkdag.getDag(), uren.tijdNaarTekst(werkdag.getTijd_in()), uren.tijdNaarTekst(werkdag.getTijd_uit()), uren.tijdNaarTekst(werkdag.getTijd_uit() - werkdag.getTijd_in()));
         }
 
     }
@@ -183,6 +186,12 @@ public class ExcelUrenTest {
         Assert.assertEquals("einde", "10-06-2012", dagen[1]);
         System.out.println(dagen[0] + " - " + dagen[1]);
 
+    }
+
+    @Test
+    public void testLognaam() {
+        DateFormat df = new SimpleDateFormat("yyMM");
+        System.out.println(df.format(new Date()));
     }
 
 

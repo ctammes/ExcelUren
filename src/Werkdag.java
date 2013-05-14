@@ -21,6 +21,38 @@ public class Werkdag {
         return dag;
     }
 
+    public String getDagnaam() {
+        String dagnaam = "";
+        switch (dag) {
+            case 2:
+                dagnaam = "maandag";
+                break;
+            case 3:
+                dagnaam = "dinsdag";
+                break;
+            case 4:
+                dagnaam = "woensdag";
+                break;
+            case 5:
+                dagnaam = "donderdag";
+                break;
+            case 6:
+                dagnaam = "vrijdag";
+                break;
+            case 7:
+                dagnaam = "zaterdag";
+                break;
+            case 8:
+                dagnaam = "zondag";
+                break;
+        }
+        return dagnaam;
+    }
+
+    public String getDagnaamKort() {
+        return getDagnaam().substring(0,2);
+    }
+
     public int getTijd_in() {
         return tijd_in;
     }

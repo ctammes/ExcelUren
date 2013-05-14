@@ -125,6 +125,7 @@ public class ExcelUren extends Excel {
                 int rij = row.getRowNum();
                 for (int dag = Weekdagen.MA.get(); dag <= Weekdagen.VR.get(); dag++) {
 
+                    System.out.println(leesIntegerCel(rij, dag));
                     int in = leesIntegerCel(rij, dag);
                     int uit = leesIntegerCel(rij + 1, dag);
                     Werkdag werkdag = new Werkdag(dag, in, uit);

@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -48,7 +49,8 @@ public class MijnUren {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 // lees en sorteer alle xls-bestanden
-                files = Diversen.leesFileNamen(txtExcelDir.getText(), ExcelUren.URENMASK);
+                dirXls = txtExcelDir.getText();
+                files = Diversen.leesFileNamen(dirXls, ExcelUren.URENMASK);
                 Arrays.sort(files);
 
                 if (files.length > 0) {
@@ -76,6 +78,8 @@ public class MijnUren {
                 String project = "";
                 if (chkVerlof.isSelected()) {
                     project = "verlof";
+                } else if (chkTijdInUit.isSelected()) {
+                    project = "tijdinuit";
                 } else if (chkProject.isSelected() && cmbProjecten.getSelectedIndex()>=0) {
                     project = cmbProjecten.getSelectedItem().toString();
 
@@ -84,6 +88,10 @@ public class MijnUren {
                 // verwerk de files
                 int granttotal = 0;
                 DefaultListModel listModel = new DefaultListModel();
+                if (!project.equals("") && !project.equals("tijdinuit")) {
+                    String tekst = String.format("%s\n", project);
+                    listModel.addElement(tekst);
+                }
                 for (String xlsFile: files) {
                     uren = new ExcelUren(dirXls, xlsFile);
                     float totaal = uren.geefTaakDuur(project);
@@ -91,6 +99,23 @@ public class MijnUren {
                     if (project.equals("verlof") || (!project.equals("verlof") && totaal > 0)) {
                         granttotal += totaal;
                         String tekst = String.format("file: %s, minuten: %6.1f, uren: %3.1f, dagen: %4.2f, uren gewerkt: %2.0f \n", xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / uren.URENPERDAG, dagtotaal);
+                        listModel.addElement(tekst);
+                    }
+                    if (project.equals("tijdinuit")) {
+                        String tekst = String.format("file: %s\n", xlsFile);
+                        listModel.addElement(tekst);
+                        List<Werkdag> tijden = uren.leesWerkTijden();
+                        int gewerkt = 0;
+                        for (Werkdag werkdag: tijden) {
+                            int in = werkdag.getTijd_in();
+                            int uit = werkdag.getTijd_uit();
+                            if (in > 0 && uit > 0) {
+                                gewerkt += uit - in;
+                                tekst = String.format("\tdag: %s, in: %s, uit: %s, uren gewerkt: %s\n", werkdag.getDagnaamKort(), uren.tijdNaarTekst(in), uren.tijdNaarTekst(uit), uren.tijdNaarTekst(uit - in));
+                                listModel.addElement(tekst);
+                            }
+                        }
+                        tekst = String.format("\tTotaal: uren: %s", uren.tijdNaarTekst(gewerkt));
                         listModel.addElement(tekst);
                     }
                     uren.sluitWerkblad();
