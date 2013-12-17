@@ -6,10 +6,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,6 +32,7 @@ public class MijnUren {
 
     private ExcelUren uren;
 
+    private static int weekNr;
     private static MijnIni ini = null;
     private static String inifile = "MijnUren.ini";
 
@@ -50,6 +48,7 @@ public class MijnUren {
             public void actionPerformed(ActionEvent actionEvent) {
                 // lees en sorteer alle xls-bestanden
                 dirXls = txtExcelDir.getText();
+                ini.schrijf("Algemeen", "dirxls", dirXls);
                 files = Diversen.leesFileNamen(dirXls, ExcelUren.URENMASK);
                 Arrays.sort(files);
 
@@ -58,8 +57,10 @@ public class MijnUren {
                     Set<String> projecten = new TreeSet<String>();
                     for (String xlsFile: files) {
                         uren = new ExcelUren(dirXls, xlsFile);
-                        // nieuwe projecten toevoegen - geen duplicaten (want Set)
-                        projecten.addAll(uren.leesProjecten());
+                        if (uren.getWeeknrUitFilenaam(xlsFile) <= weekNr) {
+                            // nieuwe projecten toevoegen - geen duplicaten (want Set)
+                            projecten.addAll(uren.leesProjecten());
+                        }
                         uren.sluitWerkblad();
                     }
                     if (projecten.size() > 0) {
@@ -86,7 +87,8 @@ public class MijnUren {
                 }
 
                 // verwerk de files
-                int granttotal = 0;
+                int grandtotal = 0;
+                int grandsaldo = 0;
                 DefaultListModel listModel = new DefaultListModel();
                 if (!project.equals("") && !project.equals("tijdinuit")) {
                     String tekst = String.format("%s\n", project);
@@ -94,33 +96,50 @@ public class MijnUren {
                 }
                 for (String xlsFile: files) {
                     uren = new ExcelUren(dirXls, xlsFile);
-                    float totaal = uren.geefTaakDuur(project);
-                    float dagtotaal = uren.geefDagtotaal();
-                    if (project.equals("verlof") || (!project.equals("verlof") && totaal > 0)) {
-                        granttotal += totaal;
-                        String tekst = String.format("file: %s, minuten: %6.1f, uren: %3.1f, dagen: %4.2f, uren gewerkt: %2.0f \n", xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / uren.URENPERDAG, dagtotaal);
-                        listModel.addElement(tekst);
-                    }
-                    if (project.equals("tijdinuit")) {
-                        String tekst = String.format("file: %s\n", xlsFile);
-                        listModel.addElement(tekst);
-                        List<Werkdag> tijden = uren.leesWerkTijden();
-                        int gewerkt = 0;
-                        for (Werkdag werkdag: tijden) {
-                            int in = werkdag.getTijd_in();
-                            int uit = werkdag.getTijd_uit();
-                            if (in > 0 && uit > 0) {
-                                gewerkt += uit - in;
-                                tekst = String.format("\tdag: %s, in: %s, uit: %s, uren gewerkt: %s\n", werkdag.getDagnaamKort(), uren.tijdNaarTekst(in), uren.tijdNaarTekst(uit), uren.tijdNaarTekst(uit - in));
-                                listModel.addElement(tekst);
-                            }
+                    if (uren.getWeeknrUitFilenaam(xlsFile) <= weekNr) {
+                        float totaal = uren.geefTaakDuur(project);
+                        float dagtotaal = uren.geefDagtotaal();
+                        if (project.equals("verlof") || (!project.equals("verlof") && totaal > 0)) {
+                            grandtotal += totaal;
+                            String tekst = String.format("file: %s, minuten: %6.1f, uren: %3.1f, dagen: %4.2f, uren gewerkt: %2.0f \n", xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / uren.URENPERDAG, dagtotaal);
+                            listModel.addElement(tekst);
                         }
-                        tekst = String.format("\tTotaal: uren: %s", uren.tijdNaarTekst(gewerkt));
-                        listModel.addElement(tekst);
+                        if (project.equals("tijdinuit")) {
+                            String tekst = String.format("file: %s\n", xlsFile);
+                            listModel.addElement(tekst);
+                            List<Werkdag> tijden = uren.leesWerkTijden();
+                            int gewerkt = 0;
+                            int dagen = 0;
+                            for (Werkdag werkdag: tijden) {
+                                int in = werkdag.getTijd_in();
+                                int uit = werkdag.getTijd_uit();
+                                if (in > 0 && uit > 0) {
+                                    dagen++;
+                                    gewerkt += uit - in;
+                                    tekst = String.format("\tdag: %s, in: %s, uit: %s, uren gewerkt: %s\n", werkdag.getDagnaamKort(), uren.tijdNaarTekst(in), uren.tijdNaarTekst(uit), uren.tijdNaarTekst(uit - in));
+                                    listModel.addElement(tekst);
+                                }
+                            }
+                            String urenGewerkt = uren.tijdNaarTekst(gewerkt);
+                            // Corrigeer evt. gewerkte dagen
+                            dagen = (dagen > uren.DAGENPERWEEK) ? uren.DAGENPERWEEK : dagen;
+                            float saldo = gewerkt - (dagen * uren.URENPERDAG * 60);
+                            grandsaldo +=  saldo;
+                            String sign = (saldo<0) ? "-" : "";
+                            tekst = String.format("\tTotaal: uren: %s, saldo: %s%s", urenGewerkt, sign, uren.tijdNaarTekst(Math.abs(saldo)));
+                            listModel.addElement(tekst);
+                        }
                     }
                     uren.sluitWerkblad();
                 }
-                String tekst = String.format("Totaal: uren: %d, dagen: %d", granttotal / 60, granttotal / 60 / 9);
+                String tekst = "";
+                if (grandtotal > 0) {
+                    tekst = String.format("Totaal: uren: %d, dagen: %d", grandtotal / 60, grandtotal / 60 / 9);
+                } else {
+                    String sign = (grandsaldo<0) ? "-" : "";
+
+                    tekst = String.format("Saldo: uren: %s%s", sign, uren.tijdNaarTekst(Math.abs(grandsaldo / 60)));
+                }
                 listModel.addElement(tekst);
 
                 lstResultaat.setModel(listModel);
@@ -158,6 +177,10 @@ public class MijnUren {
             ini.schrijf("Algemeen", "dirxls", dirXls);
             log.info("Inifile " + inifile + " aangemaakt en gevuld");
         }
+
+        // Bepaal huidige weeknummer
+        Calendar cal = Calendar.getInstance();
+        weekNr = cal.get(Calendar.WEEK_OF_YEAR);
 
         JFrame frame = new JFrame("MijnUren");
         frame.setContentPane(new MijnUren().mainPanel);

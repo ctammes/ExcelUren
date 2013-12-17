@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,6 +24,7 @@ public class ExcelUren extends Excel {
     public static final String START_WERK = "tijd_in";      // regel met start werktijd (kolom A)
     public static final String STOP_WERK = "tijd_uit";      // regel met stop werktijd (kolom A)
     public static final int URENPERDAG = 9;                 // aantal gewerkte uren per dag
+    public static final int DAGENPERWEEK = 4;               // aantal gewerkte dagen per week
     public static final String URENMASK = "cts\\d{2}\\.xls";  // filemask voor uren files
 
     public ExcelUren(String logDir, String logNaam) {
@@ -125,7 +128,6 @@ public class ExcelUren extends Excel {
                 int rij = row.getRowNum();
                 for (int dag = Weekdagen.MA.get(); dag <= Weekdagen.VR.get(); dag++) {
 
-                    System.out.println(leesIntegerCel(rij, dag));
                     int in = leesIntegerCel(rij, dag);
                     int uit = leesIntegerCel(rij + 1, dag);
                     Werkdag werkdag = new Werkdag(dag, in, uit);
@@ -190,6 +192,20 @@ public class ExcelUren extends Excel {
      */
     public String getCompleteSheetNaam(int weeknummer) {
         return getSheetPath().toString();
+    }
+
+    /**
+     * Geef het weeknummer uit de filenaam terug
+     * @param fileName
+     * @return
+     */
+    public int getWeeknrUitFilenaam(String fileName) {
+        int result = 0;
+        Matcher mat = Pattern.compile("cts(\\d{2})\\.xls", Pattern.CASE_INSENSITIVE).matcher(fileName);
+        if (mat.find()) {
+            result = Integer.valueOf(mat.group(1));
+        }
+        return result;
     }
 
 }
