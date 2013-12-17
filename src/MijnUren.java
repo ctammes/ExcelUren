@@ -36,7 +36,7 @@ public class MijnUren {
     private static MijnIni ini = null;
     private static String inifile = "MijnUren.ini";
 
-    private static String dirXls = "/home/chris/IdeaProjects/uren2012";
+    private static String dirXls = "/home/chris/IdeaProjects/uren";
     private String[] files = null;
 
     public MijnUren() {
@@ -158,6 +158,11 @@ public class MijnUren {
         // initialiseer logger
         Logger log = Logger.getLogger(MijnUren.class.getName());
 
+        // Bepaal huidige weeknummer
+        Calendar cal = Calendar.getInstance();
+        weekNr = cal.get(Calendar.WEEK_OF_YEAR);
+        int jaar = cal.get(Calendar.YEAR);
+
         String logDir = ".";
         String logNaam = "MijnUren.log";
         try {
@@ -171,16 +176,21 @@ public class MijnUren {
         // inifile lezen of initieel vullen
         if (new File(inifile).exists()) {
             ini = new MijnIni(inifile);
-            dirXls = ini.lees("Algemeen", "dirxls");
+            String dir = ini.lees("Algemeen", "dirxls");
+            if (dir != null) {
+                dirXls = dir;
+            } else {
+                dirXls = dirXls.concat(String.valueOf(jaar));
+                if (new File(dirXls).exists()) {
+                    ini.schrijf("Algemeen", "dbxls", dirXls);
+                }
+            }
         } else {
             ini = new MijnIni(inifile);
+            dirXls = dirXls.concat(String.valueOf(jaar));
             ini.schrijf("Algemeen", "dirxls", dirXls);
             log.info("Inifile " + inifile + " aangemaakt en gevuld");
         }
-
-        // Bepaal huidige weeknummer
-        Calendar cal = Calendar.getInstance();
-        weekNr = cal.get(Calendar.WEEK_OF_YEAR);
 
         JFrame frame = new JFrame("MijnUren");
         frame.setContentPane(new MijnUren().mainPanel);
