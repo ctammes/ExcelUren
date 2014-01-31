@@ -3,10 +3,14 @@ import nl.ctammes.common.MijnIni;
 import nl.ctammes.common.MijnLog;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +33,7 @@ public class MijnUren {
     private JList lstResultaat;
     private JButton btnInlezen;
     private JCheckBox chkTijdInUit;
+    private JButton btnCopyText;
 
     private ExcelUren uren;
 
@@ -53,11 +58,14 @@ public class MijnUren {
                 Arrays.sort(files);
 
                 if (files.length > 0) {
+                    Calendar cal = Calendar.getInstance();
+                    int jaar = cal.get(Calendar.YEAR);              // dit jaar
+                    int dirjaar = ExcelUren.getJaarUitDirnaam(dirXls);   // jaar waarvan de werkbladen gelezen worden
                     // per bestand projecten inlezen in gesorteerde lijst (TreeSet) zonder duplicaten (Set)
                     Set<String> projecten = new TreeSet<String>();
                     for (String xlsFile: files) {
                         uren = new ExcelUren(dirXls, xlsFile);
-                        if (uren.getWeeknrUitFilenaam(xlsFile) <= weekNr) {
+                        if (dirjaar < jaar || uren.getWeeknrUitFilenaam(xlsFile) <= weekNr) {
                             // nieuwe projecten toevoegen - geen duplicaten (want Set)
                             projecten.addAll(uren.leesProjecten());
                         }
@@ -89,6 +97,9 @@ public class MijnUren {
                 // verwerk de files
                 int grandtotal = 0;
                 int grandsaldo = 0;
+                Calendar cal = Calendar.getInstance();
+                int jaar = cal.get(Calendar.YEAR);                  // dit jaar
+                int dirjaar = ExcelUren.getJaarUitDirnaam(dirXls);  // jaar waarvan de werkbladen gelezen worden
                 DefaultListModel listModel = new DefaultListModel();
                 if (!project.equals("") && !project.equals("tijdinuit")) {
                     String tekst = String.format("%s\n", project);
@@ -96,13 +107,21 @@ public class MijnUren {
                 }
                 for (String xlsFile: files) {
                     uren = new ExcelUren(dirXls, xlsFile);
-                    if (uren.getWeeknrUitFilenaam(xlsFile) <= weekNr) {
+                    if (dirjaar < jaar || uren.getWeeknrUitFilenaam(xlsFile) <= weekNr) {
                         float totaal = uren.geefTaakDuur(project);
                         float dagtotaal = uren.geefDagtotaal();
                         if (project.equals("verlof") || (!project.equals("verlof") && totaal > 0)) {
                             grandtotal += totaal;
-                            String tekst = String.format("file: %s, minuten: %6.1f, uren: %3.1f, dagen: %4.2f, uren gewerkt: %2.0f \n", xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / uren.URENPERDAG, dagtotaal);
+                            String tekst = String.format("file: %s, minuten: %6.1f, uren: %3.1f, dagen: %4.2f, uren gewerkt: %2.0f \n"
+                                    , xlsFile, (float) totaal, (float) totaal / 60, (float) totaal / 60 / uren.URENPERDAG, dagtotaal);
                             listModel.addElement(tekst);
+
+                            // verlof tonen per dag
+                            List<Verlofdag> verlofdagen =  uren.geefVerlofPerDag(uren.getWeeknrUitFilenaam(xlsFile), dirjaar);
+                            for (Verlofdag dag : verlofdagen) {
+                                tekst = String.format("%-10s %s  minuten: %6.1f, uren: %3.1f\n", dag.getDagnaam(), dag.getDatum(), dag.getMinuten(), dag.getMinuten()/60);
+                                listModel.addElement(tekst);
+                            }
                         }
                         if (project.equals("tijdinuit")) {
                             String tekst = String.format("file: %s\n", xlsFile);
@@ -151,6 +170,25 @@ public class MijnUren {
                 cmbProjecten.setEnabled(chkProject.isEnabled());
             }
         });
+        btnCopyText.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                StringBuffer tekst = new StringBuffer("");
+                ListModel model = lstResultaat.getModel();
+                for (int i = 0; i < model.getSize(); i++) {
+                    tekst.append(model.getElementAt(i).toString());
+                }
+                tekstNaarKlembord(tekst.toString());
+            }
+        });
+    }
+
+    private void tekstNaarKlembord(String tekst) {
+        if (tekst.length() > 0) {
+            StringSelection stringSelection = new StringSelection(tekst);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents( stringSelection, stringSelection);
+        }
     }
 
     public static void main(String[] args) {
@@ -158,7 +196,8 @@ public class MijnUren {
         // initialiseer logger
         Logger log = Logger.getLogger(MijnUren.class.getName());
 
-        // Bepaal huidige weeknummer
+        // Bepaal huidige weeknummer en jaar
+        // Wijzigt als je een andere directory kiest
         Calendar cal = Calendar.getInstance();
         weekNr = cal.get(Calendar.WEEK_OF_YEAR);
         int jaar = cal.get(Calendar.YEAR);

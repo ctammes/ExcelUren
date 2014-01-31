@@ -2,10 +2,8 @@ import nl.ctammes.common.Excel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -114,6 +112,29 @@ public class ExcelUren extends Excel {
     }
 
     /**
+     * Geef overzicht van datum en verlofuren
+     * @param weeknr
+     * @param jaar
+     * @return
+     */
+    public List<Verlofdag> geefVerlofPerDag(int weeknr, int jaar) {
+
+        List<Verlofdag> verlof = new ArrayList<Verlofdag>();
+        int rij = zoekTaakregel("verlof");
+        if (rij >= 0) {
+            for (int dag = Weekdagen.MA.get(); dag <= Weekdagen.VR.get(); dag++) {
+                String waarde = leesCel(rij, dag);
+                if (!waarde.equals("")) {
+                    verlof.add(new Verlofdag(dag, getDatumUitWeekDag(weeknr, dag, jaar), Float.parseFloat(waarde)));
+                }
+            }
+
+        }
+
+        return verlof;
+    }
+
+    /**
      * Lees tijd-in en tijd uit per werkdag
      * @return
      */
@@ -207,5 +228,40 @@ public class ExcelUren extends Excel {
         }
         return result;
     }
+
+    /**
+     * Geeft de datum aan de hand van weeknummer, weekdag en jaar
+     * @param weeknr
+     * @param weekdag vb. Calendar.FRIDAY
+     * @param jaar
+     * @return
+     */
+    public static String getDatumUitWeekDag(int weeknr, int weekdag, int jaar) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        Calendar cal = Calendar.getInstance();
+//        cal.setFirstDayOfWeek(Calendar.MONDAY);
+        cal.set(Calendar.YEAR, jaar);
+        cal.set(Calendar.WEEK_OF_YEAR, weeknr);
+        cal.set(Calendar.DAY_OF_WEEK, weekdag);
+        return sdf.format(cal.getTime());
+    }
+
+    /**
+     * Bepaal het jaar uit de directorynaam die eindigt op het jaarnnummer
+     * @param dir
+     * @return
+     */
+    public static int getJaarUitDirnaam(String dir) {
+        int result = 0;
+        Pattern pat = Pattern.compile(".*(\\d{4})$");
+        Matcher mat = pat.matcher(dir);
+        while (mat.find()) {
+            String a = mat.group(1);
+            result = Integer.parseInt(mat.group(1));
+        }
+        return result;
+    }
+
+
 
 }
