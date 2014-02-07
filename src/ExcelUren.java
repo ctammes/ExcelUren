@@ -247,12 +247,13 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * Bepaal het jaar uit de directorynaam die eindigt op het jaarnnummer
+     * Bepaal het jaar uit de directorynaam die eindigt op het jaarnnummer, anders het huidige jaar
      * @param dir
      * @return
      */
     public static int getJaarUitDirnaam(String dir) {
-        int result = 0;
+        Calendar cal = Calendar.getInstance();
+        int result = cal.get(Calendar.YEAR);    // default: dit jaar
         Pattern pat = Pattern.compile(".*(\\d{4})$");
         Matcher mat = pat.matcher(dir);
         while (mat.find()) {

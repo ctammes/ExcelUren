@@ -9,10 +9,7 @@ import org.junit.Test;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -194,5 +191,40 @@ public class ExcelUrenTest {
         System.out.println(df.format(new Date()));
     }
 
+    @Test
+    public void testDatumVanWeek() throws Exception {
+        Assert.assertEquals("29-11-2013", uren.getDatumUitWeekDag(48, Calendar.FRIDAY, 2013));
+    }
+
+    @Test
+    public void testJaarUitDirnaam() throws Exception {
+        String dir = "/home/chris/IdeaProjects/uren2013";
+        Assert.assertEquals(2013, uren.getJaarUitDirnaam(dir));
+        dir = "/home/chris/IdeaProjects/uren";
+        Calendar cal = Calendar.getInstance();
+        int jaar = cal.get(Calendar.YEAR);
+        Assert.assertEquals(jaar, uren.getJaarUitDirnaam(dir));
+    }
+
+    @Test
+    public void testVerlof48() throws Exception {
+
+        int granttotal = 0;
+        String xlsFile = "CTS48.xls";
+        uren = new ExcelUren("../../uren2013", xlsFile);
+        float totaal = uren.geefTaakDuur("verlof") / 60;
+        float dagtotaal = uren.geefDagtotaal();
+        granttotal += totaal;
+        System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
+        uren.sluitWerkblad();
+        System.out.printf("Totaal: verlofuren: %d, verlofdagen: %d\n", granttotal / 60, granttotal / 60 / 9);
+
+        List<Verlofdag> verlofdagen =  uren.geefVerlofPerDag(48, 2013);
+        for (Verlofdag dag : verlofdagen) {
+            System.out.printf("%-10s %s  minuten: %6.1f, uren: %3.1f\n", dag.getDagnaam(), dag.getDatum(), dag.getMinuten(), dag.getMinuten()/60);
+        }
+    }
+
 
 }
+
