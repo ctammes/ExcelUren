@@ -1,3 +1,5 @@
+package nl.ctammes.exceluren;
+
 /**
  * Created with IntelliJ IDEA.
  * User: chris
@@ -5,16 +7,16 @@
  * Time: 16:40
  * To change this template use File | Settings | File Templates.
  */
-public class Werkdag {
+public class Verlofdag {
 
     private int dag;
-    private int tijd_in;
-    private int tijd_uit;
+    private String datum;
+    private float minuten;
 
-    public Werkdag(int dag, int tijd_in, int tijd_uit) {
+    public Verlofdag(int dag, String datum, float minuten) {
         this.dag = dag;
-        this.tijd_in = tijd_in;
-        this.tijd_uit = tijd_uit;
+        this.datum = datum;
+        this.minuten = minuten;
     }
 
     public int getDag() {
@@ -53,11 +55,11 @@ public class Werkdag {
         return getDagnaam().substring(0,2);
     }
 
-    public int getTijd_in() {
-        return tijd_in;
+    public String getDatum() {
+        return datum;
     }
 
-    public int getTijd_uit() {
-        return tijd_uit;
+    public float getMinuten() {
+        return minuten;
     }
 }

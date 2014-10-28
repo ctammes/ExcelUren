@@ -1,3 +1,5 @@
+package nl.ctammes.exceluren;
+
 import nl.ctammes.common.Excel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -25,8 +27,8 @@ public class ExcelUren extends Excel {
     public static final int DAGENPERWEEK = 4;               // aantal gewerkte dagen per week
     public static final String URENMASK = "cts\\d{2}\\.xls";  // filemask voor uren files
 
-    public ExcelUren(String logDir, String logNaam) {
-        super(logDir, logNaam);
+    public ExcelUren(String xlsDir, String xlsNaam) {
+        super(xlsDir, xlsNaam);
     }
 
     /**
@@ -48,7 +50,6 @@ public class ExcelUren extends Excel {
         }
         return rij;
     }
-
 
     /**
      * Zoek de rij met de opgegeven taaknaam
@@ -160,11 +161,10 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * lees de projectnamen uit het werkblad
-     * @return List<String> met projectnamen
+     * Geef het regelnummer van het eerste project
+     * @return
      */
-    public List<String> leesProjecten() {
-
+    private Integer getEersteProjectregel() {
         // zoek eerste projectregel op
         int rijnum=getWerkblad().getFirstRowNum();
         while (rijnum<=getWerkblad().getLastRowNum()) {
@@ -174,7 +174,17 @@ public class ExcelUren extends Excel {
                 rijnum++;
             }
         }
-        rijnum++;
+        return ++rijnum;
+    }
+
+    /**
+     * lees de projectnamen uit het werkblad
+     * @return List<String> met projectnamen
+     */
+    public List<String> leesProjecten() {
+
+        // zoek eerste projectregel op
+        int rijnum=getEersteProjectregel();
 
         // lees de projectnamen en zet ze in een lijst
         List< String > projecten = new ArrayList< String >();
@@ -183,7 +193,6 @@ public class ExcelUren extends Excel {
             if (leesCel(rijnum, (short) 0).equals(STOP_TEKST)) {
                 break;
             } else {
-                waarde=leesCel(rijnum, (short) 2);
                 waarde=leesCel(rijnum, (short) 1);
 
                 if (!waarde.equals("")) {
@@ -195,6 +204,44 @@ public class ExcelUren extends Excel {
 
         return projecten;
 
+    }
+
+    /**
+     * Geeft een lijst van alle projecten waar een totaal ingevuld is
+     * Let op: voor de weekdagen geldt een andere opmaak dan voor het weektotaal!
+     * @param kol dag van de week
+     * @return
+     */
+    public Map projectenMetTotaal(int kol) {
+        String naam = "";
+        String tijd = "";
+        long uren, minuten = 0;
+        Map<String, String> results = new HashMap<String, String>();
+
+        // zoek eerste projectregel op
+        int rijnum=getEersteProjectregel();
+
+        Iterator<Row> rowIterator = getWerkblad().iterator();
+        while (rijnum<=getWerkblad().getLastRowNum()) {
+            if (leesCel(rijnum, 0).equals(STOP_TEKST)) {
+                break;
+            } else {
+                naam = leesCel(rijnum, 1);
+                tijd = leesCel(rijnum, kol);
+                if (!naam.equals("")  && !tijd.equals("") && (Double.parseDouble(tijd) > 0.0)) {
+                    if (kol == Weekdagen.TOTAAL.get()) {
+                        uren = (long) (Double.parseDouble(tijd) * 24);
+                        minuten = (long) ((Double.parseDouble(tijd) * 24 - uren) * 60);
+                    } else {
+                        uren = (long) (Double.parseDouble(tijd) / 60);
+                        minuten = (long) ((Double.parseDouble(tijd) / 60 - uren) * 60);
+                    }
+                    results.put(naam, String.format("%02d:%02d", uren, minuten));
+                }
+                rijnum++;
+            }
+        }
+        return results;
     }
 
     /**

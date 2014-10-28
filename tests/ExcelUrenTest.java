@@ -1,10 +1,10 @@
 import junit.framework.Assert;
+import junit.framework.TestCase;
 import nl.ctammes.common.Diversen;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import nl.ctammes.exceluren.*;
 import org.junit.Test;
 
 import java.text.DateFormat;
@@ -18,19 +18,18 @@ import java.util.*;
  * Time: 12:13
  * To change this template use File | Settings | File Templates.
  */
-public class ExcelUrenTest {
-    static String dirXls = "../../uren2012";
+public class ExcelUrenTest extends TestCase {
+    static String dirXls = "/home/chris/Ideaprojects2/uren2012";
 
     static ExcelUren uren;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+    @Override
+    public void setUp() throws Exception {
         uren = new ExcelUren(dirXls, "CTS47.xls");
     }
 
-    @AfterClass
-    public static void tearDown() throws Exception {
-
+    @Override
+    public void tearDown() throws Exception {
         uren.sluitWerkblad();
     }
 
@@ -223,6 +222,16 @@ public class ExcelUrenTest {
         for (Verlofdag dag : verlofdagen) {
             System.out.printf("%-10s %s  minuten: %6.1f, uren: %3.1f\n", dag.getDagnaam(), dag.getDatum(), dag.getMinuten(), dag.getMinuten()/60);
         }
+    }
+
+    @Test
+    public void testProjectenMetTotaal() throws Exception {
+        Map result = uren.projectenMetTotaal(Weekdagen.TOTAAL.get());
+        System.out.println(result);
+
+        result = uren.projectenMetTotaal(Weekdagen.VR.get());
+        System.out.println(result);
+
     }
 
 

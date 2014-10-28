@@ -1,6 +1,9 @@
+package nl.ctammes.exceluren;
+
 import nl.ctammes.common.Diversen;
 import nl.ctammes.common.MijnIni;
 import nl.ctammes.common.MijnLog;
+import nl.ctammes.exceluren.ExcelUren;
 
 import javax.swing.*;
 import java.awt.*;
