@@ -1,9 +1,13 @@
 package nl.ctammes.exceluren;
 
+import nl.ctammes.common.Diversen;
 import nl.ctammes.common.Excel;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
+import javax.swing.*;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -19,8 +23,10 @@ import java.util.regex.Pattern;
 public class ExcelUren extends Excel {
 
     public static final int MAX_ROWS = 64;
-    public static final String START_TEKST = "Project";     // projecten beginnen hierna (kolom A)
-    public static final String STOP_TEKST = "Totaal";       // projecten eindigen hiervoor (kolom A)
+    public static final String START_TEKST = "Project";     // projecten/tellers beginnen hierna (kolom A)
+    public static final String STOP1 = "Dagtotaal";         // tellers stoppen hiervoor (kolom A)
+    public static final String START1 = "Algemeen";         // tellers beginnen hier weer (kolom A)
+    public static final String STOP_TEKST = "Totaal";       // projecten/tellers eindigen hiervoor (kolom A)
     public static final String START_WERK = "tijd_in";      // regel met start werktijd (kolom A)
     public static final String STOP_WERK = "tijd_uit";      // regel met stop werktijd (kolom A)
     public static final int URENPERDAG = 9;                 // aantal gewerkte uren per dag
@@ -269,7 +275,7 @@ public class ExcelUren extends Excel {
      */
     public int getWeeknrUitFilenaam(String fileName) {
         int result = 0;
-        Matcher mat = Pattern.compile("cts(\\d{2})\\.xls", Pattern.CASE_INSENSITIVE).matcher(fileName);
+        Matcher mat = Pattern.compile(".+(\\d{2})\\.xls", Pattern.CASE_INSENSITIVE).matcher(fileName);
         if (mat.find()) {
             result = Integer.valueOf(mat.group(1));
         }
@@ -311,5 +317,94 @@ public class ExcelUren extends Excel {
     }
 
 
+    /**
+     * Maak een nieuw urenbestand uit een oud (huidige) bestand en zet de tijden op nul
+     * @throws Exception
+     */
+    public void maakNieuwBestand() throws Exception {
 
-}
+        String fileNieuw = this.maakNieuweFilenaam();
+
+        File oud = new File(this.getSheetFullName());
+        File nieuw = new File(fileNieuw);
+        int resp = JOptionPane.YES_OPTION;
+        if (nieuw.exists()) {
+            // bepaal datum oude en nieuwe bestand
+            Date fileOudDate = new Date(new File(this.getSheetFullName()).lastModified());
+            Date fileNieuwDate = new Date(new File(fileNieuw).lastModified());
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+            String dateOud = sdf.format(fileOudDate);
+            String dateNieuw = sdf.format(fileNieuwDate);
+            // date/filedate: 07-03-2012 06:14:34 / 07-03-2012 06:06:54
+
+            // vergelijk filedatum - huidige bestand mag niet ouder zijn dan nieuw te maken bestand
+            if (fileOudDate.before(fileNieuwDate)) {
+                resp = JOptionPane.showConfirmDialog(null, "Huidige bestand is ouder dan te maken bestand (" + dateNieuw + "). Doorgaan?", "Bevestig keuze", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (resp == JOptionPane.YES_OPTION) {
+                    resp = JOptionPane.showConfirmDialog(null, fileNieuw + " bestaat al. Overschrijven?", "Bevestig keuze", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        nieuw.delete();
+                    }
+                }
+            }
+        }
+
+        // kopieer bestand naar nieuwe naam
+        if (resp == JOptionPane.YES_OPTION) {
+            FileUtils.copyFile(oud, nieuw);
+
+            maakBestandLeeg(getSheetDirectory(), fileNieuw);
+
+        }
+
+    }
+
+    /**
+     * Maakt een urenbestand leeg en wijzig het weeknummer in de tekst
+     * @param xlsDir
+     * @param xlsNaam
+     */
+    private void maakBestandLeeg(String xlsDir, String xlsNaam) {
+        ExcelUren nieuw = new ExcelUren(xlsDir, xlsNaam);
+        nieuw.schrijfCel(2, 1, "Week: " + Diversen.getWeeknummer());
+        nieuw.wisUren(nieuw);
+        nieuw.sluitWerkboek();
+    }
+
+    /**
+     * Wis de regels met gewerkte uren en sla het bestand op
+     * @param nieuw
+     */
+    private void wisUren(ExcelUren nieuw) {
+        for (int rij = nieuw.zoekProjectregel(START_TEKST) - 1; rij < nieuw.zoekProjectregel(STOP1); rij++) {
+            nieuw.wisCellen(rij, Weekdagen.MA.get(), 5);
+        }
+
+        for (int rij = nieuw.zoekProjectregel(START1); rij < nieuw.zoekProjectregel(STOP_TEKST) - 1; rij++) {
+            nieuw.wisCellen(rij, Weekdagen.MA.get(), 5);
+        }
+
+        nieuw.schrijfWerkboek();
+
+    }
+
+
+    /**
+     * Stelt een nieuwe filenaam samen uit de huidige met daarin het huidige weeknummer
+     * Het weeknummer bestaat uit twee posities direct voor de punt.
+     * @return
+     */
+    public String maakNieuweFilenaam() {
+        String result = "";
+        Pattern pat = Pattern.compile("(.+)\\d{2}(\\.xls)", Pattern.CASE_INSENSITIVE);
+        Matcher mat = pat.matcher(this.getSheetFullName());
+        while (mat.find()) {
+            result = String.format("%s%02d%s", mat.group(1), Diversen.getWeeknummer(), mat.group(2));
+        }
+        return result;
+
+    }
+
+
+    }

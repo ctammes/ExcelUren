@@ -1,15 +1,19 @@
-import junit.framework.Assert;
 import junit.framework.TestCase;
+import nl.ctammes.exceluren.ExcelUren;
 import nl.ctammes.common.Diversen;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import nl.ctammes.exceluren.*;
 import org.junit.Test;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,7 +23,7 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 public class ExcelUrenTest extends TestCase {
-    static String dirXls = "/home/chris/Ideaprojects2/uren2012";
+    static String dirXls = "/home/chris/Ideaprojects2/uren2013";
 
     static ExcelUren uren;
 
@@ -30,7 +34,7 @@ public class ExcelUrenTest extends TestCase {
 
     @Override
     public void tearDown() throws Exception {
-        uren.sluitWerkblad();
+        uren.sluitWerkboek();
     }
 
     @Test
@@ -125,32 +129,42 @@ public class ExcelUrenTest extends TestCase {
     @Test
     public void testTotaliseerProject() throws Exception {
         float totaal = uren.geefTaakDuur("Diversen ongeclassificeerd");
-        Assert.assertEquals("totaliseer", 176, uren.nummerNaarMinuten(totaal));
+        assertEquals("totaliseer", 176, uren.nummerNaarMinuten(totaal));
 
         totaal = uren.geefTaakDuur("verlof");
-        Assert.assertEquals("totaliseer", 0, uren.nummerNaarMinuten(totaal));
+        assertEquals("totaliseer", 0, uren.nummerNaarMinuten(totaal));
+    }
+
+    @Test
+    public void testZoekTaakregel() throws Exception {
+        int rij = uren.zoekTaakregel("HetHIS conversie");
+        assertEquals("taakregel", 12, rij);
+
+        rij = uren.zoekTaakregel("Diversen ongeclassificeerd");
+        assertEquals("taakregel", 34, rij);
+
     }
 
     @Test
     public void testZoekProjectregel() throws Exception {
-        int rij = uren.zoekTaakregel("HetHIS naconversie");
-        Assert.assertEquals("projectregel", 17, rij);
+        int rij = uren.zoekProjectregel(uren.START_TEKST);
+        assertEquals("projectregel", 5, rij);
 
-        rij = uren.zoekTaakregel("Diversen ongeclassificeerd");
-        Assert.assertEquals("projectregel", 39, rij);
+        rij = uren.zoekProjectregel(uren.START1);
+        assertEquals("projectregel", 36, rij);
 
     }
 
     @Test(expected = NullPointerException.class)
     public void testName() throws Exception {
         String tekst = "dit.is.een.test";
-        Assert.assertEquals("dit", tekst.split("\\.")[0], "dit");
-        Assert.assertEquals("dit", tekst.split("\\.").length , 4);
+        assertEquals("dit", tekst.split("\\.")[0], "dit");
+        assertEquals("dit", tekst.split("\\.").length , 4);
         System.out.println(tekst.split("\\.").length + " - " + tekst.split("\\.")[0]);
 
         tekst = "dit is een test";
-        Assert.assertEquals("dit ...", tekst.split("\\.")[0], tekst);
-        Assert.assertEquals("dit", tekst.split("\\.").length , 1);
+        assertEquals("dit ...", tekst.split("\\.")[0], tekst);
+        assertEquals("dit", tekst.split("\\.").length , 1);
         System.out.println(tekst.split("\\.").length + " - " + tekst.split("\\.")[0]);
 
         tekst = null;
@@ -170,7 +184,7 @@ public class ExcelUrenTest extends TestCase {
             float dagtotaal = uren.geefDagtotaal();
             granttotal += totaal;
             System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
-            uren.sluitWerkblad();
+            uren.sluitWerkboek();
         }
         System.out.printf("Totaal: verlofuren: %d, verlofdagen: %d", granttotal / 60, granttotal / 60 / 9);
     }
@@ -178,8 +192,8 @@ public class ExcelUrenTest extends TestCase {
     @Test
     public void testDatumUitWeeknr() throws Exception {
         String[] dagen = uren.geefWeekDatums(23, 2012);
-        Assert.assertEquals("begin", "04-06-2012", dagen[0]);
-        Assert.assertEquals("einde", "10-06-2012", dagen[1]);
+        assertEquals("begin", "04-06-2012", dagen[0]);
+        assertEquals("einde", "10-06-2012", dagen[1]);
         System.out.println(dagen[0] + " - " + dagen[1]);
 
     }
@@ -192,17 +206,17 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testDatumVanWeek() throws Exception {
-        Assert.assertEquals("29-11-2013", uren.getDatumUitWeekDag(48, Calendar.FRIDAY, 2013));
+        assertEquals("29-11-2013", uren.getDatumUitWeekDag(48, Calendar.FRIDAY, 2013));
     }
 
     @Test
     public void testJaarUitDirnaam() throws Exception {
         String dir = "/home/chris/IdeaProjects/uren2013";
-        Assert.assertEquals(2013, uren.getJaarUitDirnaam(dir));
+        assertEquals(2013, uren.getJaarUitDirnaam(dir));
         dir = "/home/chris/IdeaProjects/uren";
         Calendar cal = Calendar.getInstance();
         int jaar = cal.get(Calendar.YEAR);
-        Assert.assertEquals(jaar, uren.getJaarUitDirnaam(dir));
+        assertEquals(jaar, uren.getJaarUitDirnaam(dir));
     }
 
     @Test
@@ -215,7 +229,7 @@ public class ExcelUrenTest extends TestCase {
         float dagtotaal = uren.geefDagtotaal();
         granttotal += totaal;
         System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
-        uren.sluitWerkblad();
+        uren.sluitWerkboek();
         System.out.printf("Totaal: verlofuren: %d, verlofdagen: %d\n", granttotal / 60, granttotal / 60 / 9);
 
         List<Verlofdag> verlofdagen =  uren.geefVerlofPerDag(48, 2013);
@@ -234,6 +248,50 @@ public class ExcelUrenTest extends TestCase {
 
     }
 
+    @Test
+    public void testUrenfileWeeknr() {
+        Pattern pat = Pattern.compile("(.+)\\d{2}(\\.xls)", Pattern.CASE_INSENSITIVE);
+        Matcher mat = pat.matcher(uren.getSheetFullName());
+        while (mat.find()) {
+            System.out.println(mat.group(1) + Diversen.getWeeknummer() + mat.group(2));
+        }
 
+        String urenfile = "/home/chris/Ideaprojects2/uren2013/Urenregistratie CT 37.xls";
+        mat = pat.matcher(urenfile);
+        while (mat.find()) {
+            System.out.println(mat.group(1) + Diversen.getWeeknummer() + mat.group(2));
+        }
+
+    }
+
+    @Test
+    public void testMaakNieuwBestand() {
+        try {
+            File oud = new File("/home/chris/Ideaprojects2/uren2013/CTS47.xls");
+            File nieuw = new File("/home/chris/Ideaprojects2/uren2013/CTS99.xls");
+            FileUtils.copyFile(oud, nieuw);
+
+            String path = "/home/chris/Ideaprojects2/uren2013";
+            String file = "CTS99.xls";
+            ExcelUren uren = new ExcelUren(path, file);
+            uren.schrijfCel(2, 1, "Week: " + Diversen.getWeeknummer());
+
+            for (int rij = uren.zoekProjectregel(uren.START_TEKST) - 1; rij < uren.zoekProjectregel(uren.STOP1); rij++) {
+                uren.wisCellen(rij, Weekdagen.MA.get(), 5);
+            }
+
+            for (int rij = uren.zoekProjectregel(uren.START1); rij < uren.zoekProjectregel(uren.STOP_TEKST) - 1; rij++) {
+                uren.wisCellen(rij, Weekdagen.MA.get(), 5);
+            }
+
+            uren.schrijfWerkboek();
+            uren.sluitWerkboek();
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
 }
 
