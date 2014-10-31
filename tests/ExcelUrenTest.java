@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * To change this template use File | Settings | File Templates.
  */
 public class ExcelUrenTest extends TestCase {
-    static String dirXls = "/home/chris/Ideaprojects2/uren2013";
+    static String dirXls = "/home/chris/IdeaProjects2/uren2013";
 
     static ExcelUren uren;
 
@@ -65,7 +65,7 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testCel() throws Exception {
-        HSSFRow row = uren.getRegel(56);
+        HSSFRow row = uren.getRegel(51);
         Cell cell=row.getCell(0);
         System.out.println(uren.celWaarde(cell));
 
@@ -73,7 +73,7 @@ public class ExcelUrenTest extends TestCase {
         double start = Double.parseDouble(uren.celWaarde(cell));
         System.out.println(start + " - " + uren.tijdNaarTekst(start));
 
-        row=uren.getRegel(57);
+        row=uren.getRegel(52);
         cell=row.getCell(2);
         double einde = Double.parseDouble(uren.celWaarde(cell));
         System.out.println(einde + " - " + uren.tijdNaarTekst(einde));
