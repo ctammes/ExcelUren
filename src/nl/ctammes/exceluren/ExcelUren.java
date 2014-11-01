@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.Row;
 
 import javax.swing.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -31,7 +32,12 @@ public class ExcelUren extends Excel {
     public static final String STOP_WERK = "tijd_uit";      // regel met stop werktijd (kolom A)
     public static final int URENPERDAG = 9;                 // aantal gewerkte uren per dag
     public static final int DAGENPERWEEK = 4;               // aantal gewerkte dagen per week
-    public static final String URENMASK = "cts\\d{2}\\.xls";  // filemask voor uren files
+    public static final String URENMASK = "CTS\\d{2}\\.xls";  // filemask voor uren files
+    public static final String URENTEMPLATE = "CTS%02d.xls";  // filemask voor uren files
+
+    public ExcelUren(String xlsPath) {
+        super(Diversen.splitsPad(xlsPath)[0], Diversen.splitsPad(xlsPath)[1]);
+    }
 
     public ExcelUren(String xlsDir, String xlsNaam) {
         super(xlsDir, xlsNaam);
@@ -321,16 +327,22 @@ public class ExcelUren extends Excel {
      * Maak een nieuw urenbestand uit een oud (huidige) bestand en zet de tijden op nul
      * @throws Exception
      */
-    public void maakNieuwBestand() throws Exception {
+    public static void maakNieuwBestand(String xlsDir, int weeknrOud, int weeknrNieuw) throws Exception {
 
-        String fileNieuw = this.maakNieuweFilenaam();
+        String fileOud = xlsDir + File.separatorChar + String.format(URENTEMPLATE, weeknrOud);
+        String fileNieuw = xlsDir + File.separatorChar + String.format(URENTEMPLATE, weeknrNieuw);
 
-        File oud = new File(this.getSheetFullName());
+        File oud = new File(fileOud);
+        if (!oud.exists()) {
+            JOptionPane.showMessageDialog(null, String.format("Bestand %s niet gevonden!", fileOud),"Waarschuwing",JOptionPane.WARNING_MESSAGE);
+            throw new FileNotFoundException();
+        }
+
         File nieuw = new File(fileNieuw);
         int resp = JOptionPane.YES_OPTION;
         if (nieuw.exists()) {
             // bepaal datum oude en nieuwe bestand
-            Date fileOudDate = new Date(new File(this.getSheetFullName()).lastModified());
+            Date fileOudDate = new Date(new File(fileOud).lastModified());
             Date fileNieuwDate = new Date(new File(fileNieuw).lastModified());
 
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
@@ -354,21 +366,20 @@ public class ExcelUren extends Excel {
         if (resp == JOptionPane.YES_OPTION) {
             FileUtils.copyFile(oud, nieuw);
 
-            maakBestandLeeg(getSheetDirectory(), fileNieuw);
-
+            maakBestandLeeg(fileNieuw, weeknrNieuw);
         }
-
+        throw new Exception("Bestand niet overschrijven");
     }
 
     /**
      * Maakt een urenbestand leeg en wijzig het weeknummer in de tekst
-     * @param xlsDir
-     * @param xlsNaam
+     * @param xlsPath   volledige naam van xls
      */
-    private void maakBestandLeeg(String xlsDir, String xlsNaam) {
-        ExcelUren nieuw = new ExcelUren(xlsDir, xlsNaam);
-        nieuw.schrijfCel(2, 1, "Week: " + Diversen.getWeeknummer());
+    private static void maakBestandLeeg(String xlsPath, int weeknr) {
+        ExcelUren nieuw = new ExcelUren(xlsPath);
+        nieuw.schrijfCel(2, 1, "Week: " + weeknr);
         nieuw.wisUren(nieuw);
+        //TODO in/uit uren resetten?
         nieuw.sluitWerkboek();
     }
 
@@ -395,10 +406,10 @@ public class ExcelUren extends Excel {
      * Het weeknummer bestaat uit twee posities direct voor de punt.
      * @return
      */
-    public String maakNieuweFilenaam() {
+    public static String maakNieuweFilenaam(String filenaam) {
         String result = "";
         Pattern pat = Pattern.compile("(.+)\\d{2}(\\.xls)", Pattern.CASE_INSENSITIVE);
-        Matcher mat = pat.matcher(this.getSheetFullName());
+        Matcher mat = pat.matcher(filenaam);
         while (mat.find()) {
             result = String.format("%s%02d%s", mat.group(1), Diversen.getWeeknummer(), mat.group(2));
         }
