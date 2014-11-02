@@ -363,9 +363,9 @@ public class ExcelUren extends Excel {
 
             // vergelijk filedatum - huidige bestand mag niet ouder zijn dan nieuw te maken bestand
             if (fileOudDate.before(fileNieuwDate)) {
-                resp = JOptionPane.showConfirmDialog(null, "Huidige bestand is ouder dan te maken bestand (" + dateNieuw + "). Doorgaan?", "Bevestig keuze", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                resp = JOptionPane.showOptionDialog(null, "Huidige bestand is ouder dan te maken bestand (" + dateNieuw + "). Doorgaan?", "Bevestig keuze", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null,new String[] {"Ja","Nee"}, "Nee");
                 if (resp == JOptionPane.YES_OPTION) {
-                    resp = JOptionPane.showConfirmDialog(null, fileNieuw + " bestaat al. Overschrijven?", "Bevestig keuze", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    resp = JOptionPane.showOptionDialog(null, fileNieuw + " bestaat al. Overschrijven?", "Bevestig keuze", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,null,new String[] {"Ja","Nee"}, "Nee");
                     if (resp == JOptionPane.YES_OPTION) {
                         nieuw.delete();
                     }
@@ -383,7 +383,8 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * Maakt een urenbestand leeg en wijzig het weeknummer in de tekst
+     * Maakt een nieuw leeg urenbestand op basis van het huidige
+     * Het bestand wordt niet geopend.
      * @param xlsPath   volledige naam van xls
      */
     private static void maakBestandLeeg(String xlsPath, int weeknr, String dagIn, String dagUit) {
