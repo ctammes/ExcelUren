@@ -190,12 +190,9 @@ public class ExcelUrenTest extends TestCase {
     }
 
     @Test
-    public void testDatumUitWeeknr() throws Exception {
-        String[] dagen = uren.geefWeekDatums(23, 2012);
-        assertEquals("begin", "04-06-2012", dagen[0]);
-        assertEquals("einde", "10-06-2012", dagen[1]);
-        System.out.println(dagen[0] + " - " + dagen[1]);
-
+    public void testGetDagKolom() {
+        System.out.println(ExcelUren.getDagKolom(Diversen.getWeekdagnummer()));
+        System.out.println(ExcelUren.getDagKolom("31-10-2014"));
     }
 
     @Test
@@ -206,7 +203,7 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testDatumVanWeek() throws Exception {
-        assertEquals("29-11-2013", uren.getDatumUitWeekDag(48, Calendar.FRIDAY, 2013));
+        assertEquals("29-11-2013", Diversen.getDatumUitWeekDag(48, Calendar.FRIDAY, 2013));
     }
 
     @Test
@@ -267,20 +264,19 @@ public class ExcelUrenTest extends TestCase {
     @Test
     public void testMaakNieuwBestand() {
         try {
-            File oud = new File("/home/chris/Ideaprojects2/uren2013/CTS47.xls");
-            File nieuw = new File("/home/chris/Ideaprojects2/uren2013/CTS99.xls");
+            File oud = new File("/home/chris/IdeaProjects2/java/Urenlog/CTS90.xls");
+            File nieuw = new File("/home/chris/IdeaProjects2/java/Urenlog/CTS91.xls");
+            System.out.println(nieuw.getAbsolutePath());
             FileUtils.copyFile(oud, nieuw);
 
-            String path = "/home/chris/Ideaprojects2/uren2013";
-            String file = "CTS99.xls";
-            ExcelUren uren = new ExcelUren(path, file);
+            ExcelUren uren = new ExcelUren(nieuw.getAbsolutePath());
             uren.schrijfCel(2, 1, "Week: " + Diversen.getWeeknummer());
 
-            for (int rij = uren.zoekProjectregel(uren.START_TEKST) - 1; rij < uren.zoekProjectregel(uren.STOP1); rij++) {
+            for (int rij = uren.zoekProjectregel(uren.START_TEKST) + 1; rij < uren.zoekProjectregel(uren.STOP1) ; rij++) {
                 uren.wisCellen(rij, Weekdagen.MA.get(), 5);
             }
 
-            for (int rij = uren.zoekProjectregel(uren.START1); rij < uren.zoekProjectregel(uren.STOP_TEKST) - 1; rij++) {
+            for (int rij = uren.zoekProjectregel(uren.START1); rij < uren.zoekProjectregel(uren.STOP_TEKST); rij++) {
                 uren.wisCellen(rij, Weekdagen.MA.get(), 5);
             }
 

@@ -138,7 +138,7 @@ public class ExcelUren extends Excel {
             for (int dag = Weekdagen.MA.get(); dag <= Weekdagen.VR.get(); dag++) {
                 String waarde = leesCel(rij, dag);
                 if (!waarde.equals("")) {
-                    verlof.add(new Verlofdag(dag, getDatumUitWeekDag(weeknr, dag, jaar), Float.parseFloat(waarde)));
+                    verlof.add(new Verlofdag(dag, Diversen.getDatumUitWeekDag(weeknr, dag, jaar), Float.parseFloat(waarde)));
                 }
             }
 
@@ -289,20 +289,27 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * Geeft de datum aan de hand van weeknummer, weekdag en jaar
-     * @param weeknr
-     * @param weekdag vb. Calendar.FRIDAY
-     * @param jaar
+     * Bepaal de kolom ahv. de weekdag
+     * Alleen zondag wijkt af
+     * @param dagnr
      * @return
      */
-    public static String getDatumUitWeekDag(int weeknr, int weekdag, int jaar) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        Calendar cal = Calendar.getInstance();
-//        cal.setFirstDayOfWeek(Calendar.MONDAY);
-        cal.set(Calendar.YEAR, jaar);
-        cal.set(Calendar.WEEK_OF_YEAR, weeknr);
-        cal.set(Calendar.DAY_OF_WEEK, weekdag);
-        return sdf.format(cal.getTime());
+    public static int getDagKolom(int dagnr) {
+        if (dagnr == 1) {
+            return Weekdagen.ZO.get();
+        } else {
+            return dagnr;
+        }
+    }
+
+    /**
+     * Bepaal de kolom ahv. de weekdag voor een datum
+     * @param datum
+     * @return
+     */
+    public static int getDagKolom(String datum) {
+        int dagnr = Diversen.getWeekdagnummer(datum);
+        return getDagKolom(dagnr);
     }
 
     /**
@@ -322,12 +329,16 @@ public class ExcelUren extends Excel {
         return result;
     }
 
-
     /**
      * Maak een nieuw urenbestand uit een oud (huidige) bestand en zet de tijden op nul
+     * @param xlsDir
+     * @param weeknrOud
+     * @param weeknrNieuw
+     * @param dagIn
+     * @param dagUit
      * @throws Exception
      */
-    public static void maakNieuwBestand(String xlsDir, int weeknrOud, int weeknrNieuw) throws Exception {
+    public static void maakNieuwBestand(String xlsDir, int weeknrOud, int weeknrNieuw, String dagIn, String dagUit) throws Exception {
 
         String fileOud = xlsDir + File.separatorChar + String.format(URENTEMPLATE, weeknrOud);
         String fileNieuw = xlsDir + File.separatorChar + String.format(URENTEMPLATE, weeknrNieuw);
@@ -366,7 +377,7 @@ public class ExcelUren extends Excel {
         if (resp == JOptionPane.YES_OPTION) {
             FileUtils.copyFile(oud, nieuw);
 
-            maakBestandLeeg(fileNieuw, weeknrNieuw);
+            maakBestandLeeg(fileNieuw, weeknrNieuw, dagIn, dagUit);
         }
         throw new Exception("Bestand niet overschrijven");
     }
@@ -375,11 +386,11 @@ public class ExcelUren extends Excel {
      * Maakt een urenbestand leeg en wijzig het weeknummer in de tekst
      * @param xlsPath   volledige naam van xls
      */
-    private static void maakBestandLeeg(String xlsPath, int weeknr) {
+    private static void maakBestandLeeg(String xlsPath, int weeknr, String dagIn, String dagUit) {
         ExcelUren nieuw = new ExcelUren(xlsPath);
         nieuw.schrijfCel(2, 1, "Week: " + weeknr);
         nieuw.wisUren(nieuw);
-        //TODO in/uit uren resetten?
+        nieuw.resetInUitTijden(nieuw, dagIn, dagUit);
         nieuw.sluitWerkboek();
     }
 
@@ -388,13 +399,28 @@ public class ExcelUren extends Excel {
      * @param nieuw
      */
     private void wisUren(ExcelUren nieuw) {
-        for (int rij = nieuw.zoekProjectregel(START_TEKST) - 1; rij < nieuw.zoekProjectregel(STOP1); rij++) {
-            nieuw.wisCellen(rij, Weekdagen.MA.get(), 5);
+        for (int rij = nieuw.zoekProjectregel(START_TEKST) + 1; rij < nieuw.zoekProjectregel(STOP1); rij++) {
+            nieuw.wisCellen(rij, Weekdagen.MA.get(), 7);
         }
 
-        for (int rij = nieuw.zoekProjectregel(START1); rij < nieuw.zoekProjectregel(STOP_TEKST) - 1; rij++) {
-            nieuw.wisCellen(rij, Weekdagen.MA.get(), 5);
+        for (int rij = nieuw.zoekProjectregel(START1); rij < nieuw.zoekProjectregel(STOP_TEKST); rij++) {
+            nieuw.wisCellen(rij, Weekdagen.MA.get(), 7);
         }
+
+        nieuw.schrijfWerkboek();
+
+    }
+
+    /**
+     * Reset de in/uit tijden
+     * @param nieuw
+     */
+    private void resetInUitTijden(ExcelUren nieuw, String dagIn, String dagUit) {
+        nieuw.schrijfCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.MA.get(), 5, dagIn);
+        nieuw.wisCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.WO.get(), 1);
+
+        nieuw.schrijfCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.MA.get(), 5, dagUit);
+        nieuw.wisCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.WO.get(), 1);
 
         nieuw.schrijfWerkboek();
 
