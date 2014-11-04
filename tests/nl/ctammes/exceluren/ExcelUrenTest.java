@@ -1,11 +1,11 @@
+package nl.ctammes.exceluren;
+
 import junit.framework.TestCase;
-import nl.ctammes.exceluren.ExcelUren;
 import nl.ctammes.common.Diversen;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import nl.ctammes.exceluren.*;
 import org.junit.Test;
 
 import java.io.File;
@@ -128,10 +128,10 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testTotaliseerProject() throws Exception {
-        float totaal = uren.geefTaakDuur("Diversen ongeclassificeerd");
+        float totaal = uren.taakDuur("Diversen ongeclassificeerd");
         assertEquals("totaliseer", 176, uren.nummerNaarMinuten(totaal));
 
-        totaal = uren.geefTaakDuur("verlof");
+        totaal = uren.taakDuur("verlof");
         assertEquals("totaliseer", 0, uren.nummerNaarMinuten(totaal));
     }
 
@@ -180,8 +180,8 @@ public class ExcelUrenTest extends TestCase {
         int granttotal = 0;
         for (String xlsFile: files) {
             uren = new ExcelUren(dirXls, xlsFile);
-            float totaal = uren.geefTaakDuur("verlof") / 60;
-            float dagtotaal = uren.geefDagtotaal();
+            float totaal = uren.taakDuur("verlof") / 60;
+            float dagtotaal = uren.dagTotaal();
             granttotal += totaal;
             System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
             uren.sluitWerkboek();
@@ -191,7 +191,7 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testGetDagKolom() {
-        System.out.println(ExcelUren.getDagKolom(Diversen.getWeekdagnummer()));
+        System.out.println(ExcelUren.getDagKolom(Diversen.weekdagNummer()));
         System.out.println(ExcelUren.getDagKolom("31-10-2014"));
     }
 
@@ -203,7 +203,7 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testDatumVanWeek() throws Exception {
-        assertEquals("29-11-2013", Diversen.getDatumUitWeekDag(48, Calendar.FRIDAY, 2013));
+        assertEquals("29-11-2013", Diversen.datumUitWeekDag(48, Calendar.FRIDAY, 2013));
     }
 
     @Test
@@ -222,14 +222,14 @@ public class ExcelUrenTest extends TestCase {
         int granttotal = 0;
         String xlsFile = "CTS48.xls";
         uren = new ExcelUren("../../uren2013", xlsFile);
-        float totaal = uren.geefTaakDuur("verlof") / 60;
-        float dagtotaal = uren.geefDagtotaal();
+        float totaal = uren.taakDuur("verlof") / 60;
+        float dagtotaal = uren.dagTotaal();
         granttotal += totaal;
         System.out.printf("file: %s, verlofuren: %2.2f, verlofdagen: %2.2f, uren gewerkt: %2.0f \n", xlsFile, totaal, (float) totaal / 60 / 9, dagtotaal);
         uren.sluitWerkboek();
         System.out.printf("Totaal: verlofuren: %d, verlofdagen: %d\n", granttotal / 60, granttotal / 60 / 9);
 
-        List<Verlofdag> verlofdagen =  uren.geefVerlofPerDag(48, 2013);
+        List<Verlofdag> verlofdagen =  uren.verlofPerDag(48, 2013);
         for (Verlofdag dag : verlofdagen) {
             System.out.printf("%-10s %s  minuten: %6.1f, uren: %3.1f\n", dag.getDagnaam(), dag.getDatum(), dag.getMinuten(), dag.getMinuten()/60);
         }
@@ -250,13 +250,13 @@ public class ExcelUrenTest extends TestCase {
         Pattern pat = Pattern.compile("(.+)\\d{2}(\\.xls)", Pattern.CASE_INSENSITIVE);
         Matcher mat = pat.matcher(uren.getSheetFullName());
         while (mat.find()) {
-            System.out.println(mat.group(1) + Diversen.getWeeknummer() + mat.group(2));
+            System.out.println(mat.group(1) + Diversen.weekNummer() + mat.group(2));
         }
 
         String urenfile = "/home/chris/Ideaprojects2/uren2013/Urenregistratie CT 37.xls";
         mat = pat.matcher(urenfile);
         while (mat.find()) {
-            System.out.println(mat.group(1) + Diversen.getWeeknummer() + mat.group(2));
+            System.out.println(mat.group(1) + Diversen.weekNummer() + mat.group(2));
         }
 
     }
@@ -270,7 +270,7 @@ public class ExcelUrenTest extends TestCase {
             FileUtils.copyFile(oud, nieuw);
 
             ExcelUren uren = new ExcelUren(nieuw.getAbsolutePath());
-            uren.schrijfCel(2, 1, "Week: " + Diversen.getWeeknummer());
+            uren.schrijfCel(2, 1, "Week: " + Diversen.weekNummer());
 
             for (int rij = uren.zoekProjectregel(uren.START_TEKST) + 1; rij < uren.zoekProjectregel(uren.STOP1) ; rij++) {
                 uren.wisCellen(rij, Weekdagen.MA.get(), 5);

@@ -89,7 +89,7 @@ public class ExcelUren extends Excel {
      * @param project
      * @return
      */
-    public float geefTaakDuur(String project) {
+    public float taakDuur(String project) {
 
         int rij = zoekTaakregel(project);
 
@@ -109,7 +109,7 @@ public class ExcelUren extends Excel {
      * Geef gewerkte uren van dit werkblad
      * @return
      */
-    public float geefDagtotaal() {
+    public float dagTotaal() {
 
         int rij = zoekProjectregel("dagtotaal");
 
@@ -130,7 +130,7 @@ public class ExcelUren extends Excel {
      * @param jaar
      * @return
      */
-    public List<Verlofdag> geefVerlofPerDag(int weeknr, int jaar) {
+    public List<Verlofdag> verlofPerDag(int weeknr, int jaar) {
 
         List<Verlofdag> verlof = new ArrayList<Verlofdag>();
         int rij = zoekTaakregel("verlof");
@@ -138,7 +138,7 @@ public class ExcelUren extends Excel {
             for (int dag = Weekdagen.MA.get(); dag <= Weekdagen.VR.get(); dag++) {
                 String waarde = leesCel(rij, dag);
                 if (!waarde.equals("")) {
-                    verlof.add(new Verlofdag(dag, Diversen.getDatumUitWeekDag(weeknr, dag, jaar), Float.parseFloat(waarde)));
+                    verlof.add(new Verlofdag(dag, Diversen.datumUitWeekDag(weeknr, dag, jaar), Float.parseFloat(waarde)));
                 }
             }
 
@@ -308,7 +308,7 @@ public class ExcelUren extends Excel {
      * @return
      */
     public static int getDagKolom(String datum) {
-        int dagnr = Diversen.getWeekdagnummer(datum);
+        int dagnr = Diversen.weekdagNummer(datum);
         return getDagKolom(dagnr);
     }
 
@@ -438,7 +438,7 @@ public class ExcelUren extends Excel {
         Pattern pat = Pattern.compile("(.+)\\d{2}(\\.xls)", Pattern.CASE_INSENSITIVE);
         Matcher mat = pat.matcher(filenaam);
         while (mat.find()) {
-            result = String.format("%s%02d%s", mat.group(1), Diversen.getWeeknummer(), mat.group(2));
+            result = String.format("%s%02d%s", mat.group(1), Diversen.weekNummer(), mat.group(2));
         }
         return result;
 
