@@ -401,11 +401,11 @@ public class ExcelUren extends Excel {
      */
     private void wisUren(ExcelUren nieuw) {
         for (int rij = nieuw.zoekProjectregel(START_TEKST) + 1; rij < nieuw.zoekProjectregel(STOP1); rij++) {
-            nieuw.wisCellen(rij, Weekdagen.MA.get(), 7);
+            nieuw.wisTijdCellen(rij, Weekdagen.MA.get(), 7);
         }
 
         for (int rij = nieuw.zoekProjectregel(START1); rij < nieuw.zoekProjectregel(STOP_TEKST); rij++) {
-            nieuw.wisCellen(rij, Weekdagen.MA.get(), 7);
+            nieuw.wisTijdCellen(rij, Weekdagen.MA.get(), 7);
         }
 
         nieuw.schrijfWerkboek();
@@ -417,10 +417,12 @@ public class ExcelUren extends Excel {
      * @param nieuw
      */
     private void resetInUitTijden(ExcelUren nieuw, String dagIn, String dagUit) {
-        nieuw.schrijfCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.MA.get(), 5, dagIn);
+//        uren.schrijfTijdCel(62, 2, Excel.tekstNaarTijd("17:30"));
+
+        nieuw.schrijfCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.MA.get(), 5, Excel.tekstNaarTijd(dagIn));
         nieuw.wisCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.WO.get(), 1);
 
-        nieuw.schrijfCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.MA.get(), 5, dagUit);
+        nieuw.schrijfCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.MA.get(), 5, Excel.tekstNaarTijd(dagUit));
         nieuw.wisCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.WO.get(), 1);
 
         nieuw.schrijfWerkboek();
