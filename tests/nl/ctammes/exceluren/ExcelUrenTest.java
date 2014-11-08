@@ -2,6 +2,7 @@ package nl.ctammes.exceluren;
 
 import junit.framework.TestCase;
 import nl.ctammes.common.Diversen;
+import nl.ctammes.common.Excel;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
@@ -287,7 +288,28 @@ public class ExcelUrenTest extends TestCase {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
+
+    @Test
+    public void testResetInUitTijden() {
+        ExcelUren nieuw = new ExcelUren("/home/chris/IdeaProjects2/java/Urenlog", "CTS45.xls");
+        nieuw.schrijfTijdCellen(nieuw.zoekProjectregel(ExcelUren.START_WERK), Weekdagen.MA.get(), 5, Excel.tekstNaarTijd("07:45"));
+        nieuw.wisCellen(nieuw.zoekProjectregel(ExcelUren.START_WERK), Weekdagen.WO.get(), 1);
+
+        nieuw.schrijfWerkboek();
+        nieuw.sluitWerkboek();
+    }
+
+    public void testIsVandaagWerkdag() {
+        System.out.println(ExcelUren.isVandaagWerkdag("ma,di,do,vr"));
+        System.out.println(ExcelUren.isVandaagWerkdag("ma,di,wo,do,vr,za,zo"));
+    }
+
+    public void testNuWerkTijd() {
+        System.out.println(ExcelUren.isNuWerktijd("ma,di,do,vr", "07:30", "16:30"));
+        System.out.println(ExcelUren.isNuWerktijd("ma,di,wo,do,vr,za,zo", "07:30", "16:30"));
+        System.out.println(ExcelUren.isNuWerktijd("ma,di,wo,do,vr,za,zo", "07:30", "21:30"));
+    }
+
 }
 

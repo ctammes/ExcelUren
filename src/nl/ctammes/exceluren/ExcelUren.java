@@ -383,6 +383,93 @@ public class ExcelUren extends Excel {
     }
 
     /**
+     * Is vandaag een werkdag?
+     * @param werkdagen
+     * @return kolomnummer van de dag of 0
+     */
+    public static int isVandaagWerkdag(String werkdagen) {
+        Calendar nu = Calendar.getInstance();
+
+        int result = 0;
+        switch (nu.DAY_OF_WEEK) {
+            case Calendar.MONDAY:
+                if (werkdagen.contains("ma")) {
+                    result = nu.DAY_OF_WEEK;
+                }
+                break;
+            case Calendar.TUESDAY:
+                if (werkdagen.contains("di")) {
+                    result = nu.DAY_OF_WEEK;
+                }
+                break;
+            case Calendar.WEDNESDAY:
+                if (werkdagen.contains("wo")) {
+                    result = nu.DAY_OF_WEEK;
+                }
+                break;
+            case Calendar.THURSDAY:
+                if (werkdagen.contains("do")) {
+                    result = nu.DAY_OF_WEEK;
+                }
+                break;
+            case Calendar.FRIDAY:
+                if (werkdagen.contains("vr")) {
+                    result = nu.DAY_OF_WEEK;
+                }
+                break;
+            case Calendar.SATURDAY:
+                if (werkdagen.contains("za")) {
+                    result = nu.DAY_OF_WEEK ;
+                }
+                break;
+            case Calendar.SUNDAY:
+                if (werkdagen.contains("zo")) {
+                    result = 8;
+                }
+                break;
+        }
+        return result;
+    }
+
+    /**
+     * Ligt het huidige tijdstip binnen de werktijd?
+     * @param werktijdVan
+     * @param werktijdTot
+     * @return
+     */
+    public static boolean isNuWerktijd(String werkdagen, String werktijdVan, String werktijdTot) {
+        Calendar nu = Calendar.getInstance();
+        Calendar van = Calendar.getInstance();
+        Calendar tot = Calendar.getInstance();
+        String tijd[];
+        boolean result = true;
+
+        if (isVandaagWerkdag(werkdagen) > 0) {
+            tijd = splitsTijd(werktijdVan);
+            van.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tijd[0]));
+            van.set(Calendar.MINUTE, Integer.parseInt(tijd[1]));
+
+            tijd = splitsTijd(werktijdTot);
+            tot.set(Calendar.HOUR_OF_DAY, Integer.parseInt(tijd[0]));
+            tot.set(Calendar.MINUTE, Integer.parseInt(tijd[1]));
+
+            if (nu.before(van)) {
+                result = false;
+            }
+            ;
+            if (nu.after(tot)) {
+                result = false;
+            }
+            ;
+        } else {
+            result = false;
+        }
+        return result;
+
+    }
+
+
+    /**
      * Maakt een nieuw leeg urenbestand op basis van het huidige
      * Het bestand wordt niet geopend.
      * @param xlsPath   volledige naam van xls
@@ -418,10 +505,10 @@ public class ExcelUren extends Excel {
      */
     private void resetInUitTijden(ExcelUren nieuw, String dagIn, String dagUit) {
 
-        nieuw.schrijfTijdCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.MA.get(), 5, Excel.tekstNaarTijd(dagIn));
+        nieuw.schrijfTijdCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.MA.get(), 5, tekstNaarTijd(dagIn));
         nieuw.wisCellen(nieuw.zoekProjectregel(START_WERK), Weekdagen.WO.get(), 1);
 
-        nieuw.schrijfTijdCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.MA.get(), 5, Excel.tekstNaarTijd(dagUit));
+        nieuw.schrijfTijdCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.MA.get(), 5, tekstNaarTijd(dagUit));
         nieuw.wisCellen(nieuw.zoekProjectregel(STOP_WERK), Weekdagen.WO.get(), 1);
 
         nieuw.schrijfWerkboek();
