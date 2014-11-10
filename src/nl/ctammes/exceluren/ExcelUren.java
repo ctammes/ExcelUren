@@ -378,8 +378,9 @@ public class ExcelUren extends Excel {
             FileUtils.copyFile(oud, nieuw);
 
             maakBestandLeeg(fileNieuw, weeknrNieuw, dagIn, dagUit);
+        } else {
+            throw new Exception("Bestand niet overschrijven");
         }
-        throw new Exception("Bestand niet overschrijven");
     }
 
     /**
