@@ -118,7 +118,7 @@ public class ExcelUrenTest extends TestCase {
     @Test
     public void testLeesXlsnamen() throws Exception {
 
-        String[] files = Diversen.leesFileNamen(dirXls, ExcelUren.URENMASK);
+        String[] files = Diversen.leesFileNamen(dirXls, ExcelUren.XLSMASK);
         Arrays.sort(files);
 
         System.out.println("Gevonden: " + files.length);
@@ -175,7 +175,7 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testAlleVerlof() throws Exception {
-        String[] files = Diversen.leesFileNamen(dirXls, ExcelUren.URENMASK);
+        String[] files = Diversen.leesFileNamen(dirXls, ExcelUren.XLSMASK);
         Arrays.sort(files);
 
         int granttotal = 0;
@@ -192,8 +192,8 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testGetDagKolom() {
-        System.out.println(ExcelUren.getDagKolom(Diversen.weekdagNummer()));
-        System.out.println(ExcelUren.getDagKolom("31-10-2014"));
+        System.out.println(ExcelUren.dagKolom(Diversen.weekdagNummer()));
+        System.out.println(ExcelUren.dagKolom("31-10-2014"));
     }
 
     @Test
@@ -210,11 +210,11 @@ public class ExcelUrenTest extends TestCase {
     @Test
     public void testJaarUitDirnaam() throws Exception {
         String dir = "/home/chris/IdeaProjects/uren2013";
-        assertEquals(2013, uren.getJaarUitDirnaam(dir));
+        assertEquals(2013, uren.jaarUitDirnaam(dir));
         dir = "/home/chris/IdeaProjects/uren";
         Calendar cal = Calendar.getInstance();
         int jaar = cal.get(Calendar.YEAR);
-        assertEquals(jaar, uren.getJaarUitDirnaam(dir));
+        assertEquals(jaar, uren.jaarUitDirnaam(dir));
     }
 
     @Test
@@ -291,6 +291,11 @@ public class ExcelUrenTest extends TestCase {
     }
 
     @Test
+    public void testMaakNieuweFilenaam() {
+        System.out.println(ExcelUren.maakNieuweFilenaam("CTS45.xls"));
+    }
+
+    @Test
     public void testResetInUitTijden() {
         ExcelUren nieuw = new ExcelUren("/home/chris/IdeaProjects2/java/Urenlog", "CTS45.xls");
         nieuw.schrijfTijdCellen(nieuw.zoekProjectregel(ExcelUren.START_WERK), Weekdagen.MA.get(), 5, Excel.tekstNaarTijd("07:45"));
@@ -311,5 +316,14 @@ public class ExcelUrenTest extends TestCase {
         System.out.println(ExcelUren.isNuWerktijd("ma,di,wo,do,vr,za,zo", "07:30", "21:30"));
     }
 
+    @Test
+    public void testWeeknrUitFilenaam() {
+        assertEquals(uren.weeknrUitFilenaam("CTS21.xls"), 21);
+    }
+
+    @Test
+    public void testBestaatWerkboek() {
+        assertEquals(ExcelUren.bestaatWerkboek("/home/chris/IdeaProjects2/java/Urenlog", 46), true);
+    }
 }
 

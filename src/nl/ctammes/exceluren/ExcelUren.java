@@ -24,16 +24,16 @@ import java.util.regex.Pattern;
 public class ExcelUren extends Excel {
 
     public static final int MAX_ROWS = 64;
-    public static final String START_TEKST = "Project";     // projecten/tellers beginnen hierna (kolom A)
-    public static final String STOP1 = "Dagtotaal";         // tellers stoppen hiervoor (kolom A)
-    public static final String START1 = "Algemeen";         // tellers beginnen hier weer (kolom A)
-    public static final String STOP_TEKST = "Totaal";       // projecten/tellers eindigen hiervoor (kolom A)
-    public static final String START_WERK = "tijd_in";      // regel met start werktijd (kolom A)
-    public static final String STOP_WERK = "tijd_uit";      // regel met stop werktijd (kolom A)
-    public static final int URENPERDAG = 9;                 // aantal gewerkte uren per dag
-    public static final int DAGENPERWEEK = 4;               // aantal gewerkte dagen per week
-    public static final String URENMASK = "CTS\\d{2}\\.xls";  // filemask voor uren files
-    public static final String URENTEMPLATE = "CTS%02d.xls";  // filemask voor uren files
+    public static final String START_TEKST = "Project";      // projecten/tellers beginnen hierna (kolom A)
+    public static final String STOP1 = "Dagtotaal";          // tellers stoppen hiervoor (kolom A)
+    public static final String START1 = "Algemeen";          // tellers beginnen hier weer (kolom A)
+    public static final String STOP_TEKST = "Totaal";        // projecten/tellers eindigen hiervoor (kolom A)
+    public static final String START_WERK = "tijd_in";       // regel met start werktijd (kolom A)
+    public static final String STOP_WERK = "tijd_uit";       // regel met stop werktijd (kolom A)
+    public static final int URENPERDAG = 9;                  // aantal gewerkte uren per dag
+    public static final int DAGENPERWEEK = 4;                // aantal gewerkte dagen per week
+    public static final String XLSMASK = "(.+)(\\d{2})(\\.xls)";  // filemask voor uren files
+    public static final String XLSTEMPLATE = "CTS%02d.xls";  // filemask voor uren files
 
     public ExcelUren(String xlsPath) {
         super(Diversen.splitsPad(xlsPath)[0], Diversen.splitsPad(xlsPath)[1]);
@@ -176,7 +176,7 @@ public class ExcelUren extends Excel {
      * Geef het regelnummer van het eerste project
      * @return
      */
-    private Integer getEersteProjectregel() {
+    private Integer eersteProjectregel() {
         // zoek eerste projectregel op
         int rijnum=getWerkblad().getFirstRowNum();
         while (rijnum<=getWerkblad().getLastRowNum()) {
@@ -196,7 +196,7 @@ public class ExcelUren extends Excel {
     public List<String> leesProjecten() {
 
         // zoek eerste projectregel op
-        int rijnum=getEersteProjectregel();
+        int rijnum= eersteProjectregel();
 
         // lees de projectnamen en zet ze in een lijst
         List< String > projecten = new ArrayList< String >();
@@ -231,7 +231,7 @@ public class ExcelUren extends Excel {
         Map<String, String> results = new HashMap<String, String>();
 
         // zoek eerste projectregel op
-        int rijnum=getEersteProjectregel();
+        int rijnum= eersteProjectregel();
 
         Iterator<Row> rowIterator = getWerkblad().iterator();
         while (rijnum<=getWerkblad().getLastRowNum()) {
@@ -257,21 +257,21 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * Geef de volledige naam van het sheet van deze week, incl. pad
-     * @return volledige pad van de sheet
+     * Geef de naam van het werkboek van deze week
+     * @return naam van het werkboek
      */
-    public String getCompleteSheetNaam() {
+    public static String sheetNaam() {
         int weeknummer= Calendar.getInstance().get(Calendar.WEEK_OF_YEAR);
-        return getCompleteSheetNaam(weeknummer);
+        return sheetNaam(weeknummer);
     }
 
     /**
-     * Geef de volledige naam van het sheet, incl. pad
+     * Geef de naam van het werkboek
      * @param weeknummer weeknummer
-     * @return volledige pad van de sheet
+     * @return naam van het werkboek
      */
-    public String getCompleteSheetNaam(int weeknummer) {
-        return getSheetPath().toString();
+    public static String sheetNaam(int weeknummer) {
+        return String.format(XLSTEMPLATE, weeknummer);
     }
 
     /**
@@ -279,11 +279,11 @@ public class ExcelUren extends Excel {
      * @param fileName
      * @return
      */
-    public int getWeeknrUitFilenaam(String fileName) {
+    public int weeknrUitFilenaam(String fileName) {
         int result = 0;
-        Matcher mat = Pattern.compile(".+(\\d{2})\\.xls", Pattern.CASE_INSENSITIVE).matcher(fileName);
+        Matcher mat = Pattern.compile(XLSMASK, Pattern.CASE_INSENSITIVE).matcher(fileName);
         if (mat.find()) {
-            result = Integer.valueOf(mat.group(1));
+            result = Integer.valueOf(mat.group(2));
         }
         return result;
     }
@@ -294,7 +294,7 @@ public class ExcelUren extends Excel {
      * @param dagnr
      * @return
      */
-    public static int getDagKolom(int dagnr) {
+    public static int dagKolom(int dagnr) {
         if (dagnr == 1) {
             return Weekdagen.ZO.get();
         } else {
@@ -307,9 +307,9 @@ public class ExcelUren extends Excel {
      * @param datum
      * @return
      */
-    public static int getDagKolom(String datum) {
+    public static int dagKolom(String datum) {
         int dagnr = Diversen.weekdagNummer(datum);
-        return getDagKolom(dagnr);
+        return dagKolom(dagnr);
     }
 
     /**
@@ -317,7 +317,7 @@ public class ExcelUren extends Excel {
      * @param dir
      * @return
      */
-    public static int getJaarUitDirnaam(String dir) {
+    public static int jaarUitDirnaam(String dir) {
         Calendar cal = Calendar.getInstance();
         int result = cal.get(Calendar.YEAR);    // default: dit jaar
         Pattern pat = Pattern.compile(".*(\\d{4})$");
@@ -340,8 +340,8 @@ public class ExcelUren extends Excel {
      */
     public static void maakNieuwBestand(String xlsDir, int weeknrOud, int weeknrNieuw, String dagIn, String dagUit) throws Exception {
 
-        String fileOud = xlsDir + File.separatorChar + String.format(URENTEMPLATE, weeknrOud);
-        String fileNieuw = xlsDir + File.separatorChar + String.format(URENTEMPLATE, weeknrNieuw);
+        String fileOud = xlsDir + File.separatorChar + String.format(XLSTEMPLATE, weeknrOud);
+        String fileNieuw = xlsDir + File.separatorChar + String.format(XLSTEMPLATE, weeknrNieuw);
 
         File oud = new File(fileOud);
         if (!oud.exists()) {
@@ -524,14 +524,24 @@ public class ExcelUren extends Excel {
      */
     public static String maakNieuweFilenaam(String filenaam) {
         String result = "";
-        Pattern pat = Pattern.compile("(.+)\\d{2}(\\.xls)", Pattern.CASE_INSENSITIVE);
+        Pattern pat = Pattern.compile(XLSMASK, Pattern.CASE_INSENSITIVE);
         Matcher mat = pat.matcher(filenaam);
         while (mat.find()) {
-            result = String.format("%s%02d%s", mat.group(1), Diversen.weekNummer(), mat.group(2));
+            result = String.format("%s%02d%s", mat.group(1), Diversen.weekNummer(), mat.group(3));
         }
         return result;
 
     }
 
-
+    /**
+     * bestaat het Excel bestand?
+     * @return true/false
+     */
+    public static boolean bestaatWerkboek(String xlsDir, int weeknummer) {
+        String pad = String.format("%s%s%s",xlsDir, File.separatorChar , String.format(XLSTEMPLATE, weeknummer));
+        return Diversen.bestaatPad(pad);
     }
+
+
+
+}
