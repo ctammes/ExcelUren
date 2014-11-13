@@ -325,5 +325,10 @@ public class ExcelUrenTest extends TestCase {
     public void testBestaatWerkboek() {
         assertEquals(ExcelUren.bestaatWerkboek("/home/chris/IdeaProjects2/java/Urenlog", 46), true);
     }
+
+    @Test
+    public void testSheetnaam() {
+        assertEquals(ExcelUren.sheetNaam(45), "CTS45.xls");
+    }
 }
 
