@@ -93,6 +93,15 @@ public class ExcelUrenTest extends TestCase {
     }
 
     @Test
+    public void testLeesProjecten() throws Exception {
+        List projecten = uren.leesProjecten();
+        for (Iterator<String> project =  projecten.iterator(); project.hasNext();) {
+            String naam = project.next();
+            System.out.printf("%s\n", naam);
+        }
+    }
+
+    @Test
     public void testWeekdagen() throws Exception {
         for (Weekdagen dag: Weekdagen.values()) {
             System.out.println(dag);
