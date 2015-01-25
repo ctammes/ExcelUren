@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,12 +38,19 @@ public class ExcelUren extends Excel {
     public static final String XLSMASK = "(.+)(\\d{2})(\\.xls)";  // filemask voor uren files
     public static final String XLSTEMPLATE = "CTS%02d.xls";  // filemask voor uren files
 
+    private Logger log;
+
     public ExcelUren(String xlsPath) {
         super(Diversen.splitsPad(xlsPath)[0], Diversen.splitsPad(xlsPath)[1]);
     }
 
     public ExcelUren(String xlsDir, String xlsNaam) {
         super(xlsDir, xlsNaam);
+    }
+
+    public void setLog(Logger log) {
+        this.log = log;
+        super.setLog(log);
     }
 
     /**
@@ -220,6 +228,33 @@ public class ExcelUren extends Excel {
 
     }
 
+    public List<String> leesPOProjecten() {
+
+        // zoek eerste projectregel op
+        int rijnum= eersteProjectregel();
+
+        // lees de projectnamen en zet ze in een lijst
+        List< String > projecten = new ArrayList<String>();
+        String waarde="";
+        while (rijnum<=getWerkblad().getLastRowNum()) {
+            if (leesCel(rijnum, (short) 0).equals(STOP_TEKST)) {
+                break;
+            } else {
+                if (leesCel(rijnum, (short) 0).equals("PO")) {
+                    waarde = leesCel(rijnum, (short) 1);
+
+                    if (!waarde.equals("")) {
+                        projecten.add(waarde);
+                    }
+                }
+                rijnum++;
+            }
+        }
+
+        return projecten;
+
+    }
+
     /**
      * Geeft een lijst van alle projecten waar een totaal ingevuld is
      * Let op: voor de weekdagen geldt een andere opmaak dan voor het weektotaal!
@@ -259,12 +294,24 @@ public class ExcelUren extends Excel {
     }
 
     /**
+     * Nieuwe taak toevoegen in het werkblad
+     * @param taak
+     */
+    public void nieuweTaakToevoegen(String taak) {
+        int waar = bepaalRijNieuweTaak(taak);
+        if (waar > 0) {
+            invoegenRijOnder(waar, taak);
+        } else {
+            invoegenRijBoven(-waar, taak);
+        }
+    }
+
+    /**
      * Rij invoegen in werkblad onder het aangegeven rijnummer
      * @param rij
      */
     public void invoegenRijOnder(int rij, String taak) {
         if ( rij >= 0 ) {
-            int keeprow = rij;
             // bewaar oude rij
             HSSFRow oude_rij = getWerkblad().getRow(rij);
             // schuif alles 1 rij op en voeg nieuwe rij in
@@ -272,6 +319,29 @@ public class ExcelUren extends Excel {
             HSSFRow nieuwe_rij = getWerkblad().createRow(rij + 1);
 
             kopierenRij(oude_rij, nieuwe_rij, taak);
+            if (log != null) {
+                log.info(String.format("taak %s toevoegen op rij %d", taak, rij));
+            }
+
+        }
+    }
+
+    /**
+     * Rij invoegen in werkblad boven het aangegeven rijnummer
+     * @param rij
+     */
+    public void invoegenRijBoven(int rij, String taak) {
+        if ( rij >= 0 ) {
+            // bewaar oude rij
+            HSSFRow oude_rij = getWerkblad().getRow(rij);
+            // schuif alles 1 rij op en voeg nieuwe rij in
+            getWerkblad().shiftRows(rij, getWerkblad().getLastRowNum(), 1);
+            HSSFRow nieuwe_rij = getWerkblad().createRow(rij);
+
+            kopierenRij(oude_rij, nieuwe_rij, taak);
+            if (log != null) {
+                log.info(String.format("taak %s toevoegen op rij %d", taak, rij));
+            }
         }
     }
 
@@ -297,6 +367,25 @@ public class ExcelUren extends Excel {
 
         schrijfWerkboek();
 
+    }
+
+    /**
+     * Bepaal waar een nieuwe taak in het werkblad moet worden ingevoegd
+     * Een taak wordt alfabetisch toegevoegd aan de PO projecten
+     * @param naam
+     * @return rij waaronder de taak moet worden toegevoegd (<0: waarboven)
+     */
+    public int bepaalRijNieuweTaak(String naam) {
+        List<String> taken = leesPOProjecten();
+        taken.add(naam);
+        Collections.sort(taken);
+
+        int pos = taken.indexOf(naam);
+        if (pos == 0) {
+            return -zoekTaakregel(taken.get(pos + 1));
+        } else {
+            return zoekTaakregel(taken.get(pos - 1));
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package nl.ctammes.exceluren;
 import junit.framework.TestCase;
 import nl.ctammes.common.Diversen;
 import nl.ctammes.common.Excel;
+import nl.ctammes.common.MijnLog;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -12,10 +13,13 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,10 +34,24 @@ public class ExcelUrenTest extends TestCase {
     static String dirXls = "/home/chris/IdeaProjects2/uren2013";
 
     static ExcelUren uren;
+    private Logger log;
 
     @Override
     public void setUp() throws Exception {
         uren = new ExcelUren(dirXls, "CTS47.xls");
+
+        log = Logger.getLogger(TestCase.class.getName());
+
+        String logDir = ".";
+        String logNaam = "TestCase.log";
+        try {
+            MijnLog mijnlog = new MijnLog(logDir, logNaam, true);
+            log = mijnlog.getLog();
+            log.setLevel(Level.INFO);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Exception", JOptionPane.WARNING_MESSAGE);
+        }
+
     }
 
     @Override
@@ -345,19 +363,52 @@ public class ExcelUrenTest extends TestCase {
 
     @Test
     public void testInsertDeleteRow() {
+        uren.setLog(log);
         HSSFSheet werkblad = uren.getWerkblad();
 
         String taak = "Testproject";
         int rij = uren.zoekTaakregel(taak);
         assertEquals("voor insert", -1, rij);
 
-        uren.invoegenRijOnder(23, taak);
-        rij = uren.zoekTaakregel(taak);
-        assertEquals("na insert", 24, rij);
+        int waar = uren.bepaalRijNieuweTaak(taak);
+        System.out.println(waar);
+        if (waar > 0) {
+            uren.invoegenRijOnder(waar, taak);
+        } else {
+            uren.invoegenRijBoven(-waar, taak);
+        }
 
-        uren.wisRij(rij);
-        rij = uren.zoekTaakregel(taak);
-        assertEquals("na verwijder", -1, rij);
+//        uren.invoegenRijOnder(23, taak);
+        waar = uren.zoekTaakregel(taak);
+        assertEquals("na insert", waar, waar);
+
+        uren.wisRij(waar);
+        waar = uren.zoekTaakregel(taak);
+        assertEquals("na verwijder", -1, waar);
+    }
+
+    @Test
+    /**
+     * Waar moet een nieuw project toegevoegd worden?
+     */
+    public void testInsertInTaken() {
+        String naam = "Testproject";
+//        naam = "Zie hier aan het einde";
+//        naam = "Aaaaan het begin";
+
+        int rij = uren.bepaalRijNieuweTaak(naam);
+        if (rij > 0) {
+            System.out.println("onder " + rij);
+        } else {
+            System.out.println("boven " + -rij);
+        }
+    }
+
+    @Test
+    public void testNieuweTaakToevoegen() {
+        uren.setLog(log);
+        String naam = "Testproject";
+        uren.nieuweTaakToevoegen(naam);
     }
 }
 
