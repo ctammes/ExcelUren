@@ -410,5 +410,14 @@ public class ExcelUrenTest extends TestCase {
         String naam = "Testproject";
         uren.nieuweTaakToevoegen(naam);
     }
+
+    @Test
+    public void testTaakVerwijderen() {
+        uren.setLog(log);
+        String naam = "Testproject";
+        uren.taakVerwijderen(naam);
+    }
+
 }
+
 

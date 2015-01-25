@@ -38,19 +38,12 @@ public class ExcelUren extends Excel {
     public static final String XLSMASK = "(.+)(\\d{2})(\\.xls)";  // filemask voor uren files
     public static final String XLSTEMPLATE = "CTS%02d.xls";  // filemask voor uren files
 
-    private Logger log;
-
     public ExcelUren(String xlsPath) {
         super(Diversen.splitsPad(xlsPath)[0], Diversen.splitsPad(xlsPath)[1]);
     }
 
     public ExcelUren(String xlsDir, String xlsNaam) {
         super(xlsDir, xlsNaam);
-    }
-
-    public void setLog(Logger log) {
-        this.log = log;
-        super.setLog(log);
     }
 
     /**
@@ -320,7 +313,7 @@ public class ExcelUren extends Excel {
 
             kopierenRij(oude_rij, nieuwe_rij, taak);
             if (log != null) {
-                log.info(String.format("taak %s toevoegen op rij %d", taak, rij));
+                log.info(String.format("taak %s toevoegen onder rij %d", taak, rij));
             }
 
         }
@@ -340,7 +333,7 @@ public class ExcelUren extends Excel {
 
             kopierenRij(oude_rij, nieuwe_rij, taak);
             if (log != null) {
-                log.info(String.format("taak %s toevoegen op rij %d", taak, rij));
+                log.info(String.format("taak %s toevoegen boven rij %d", taak, rij));
             }
         }
     }
@@ -367,6 +360,17 @@ public class ExcelUren extends Excel {
 
         schrijfWerkboek();
 
+    }
+
+    /**
+     * Taak uit werkblad verwijderen
+     * @param taak
+     */
+    public void taakVerwijderen(String taak) {
+        int waar = zoekTaakregel(taak);
+        if (waar >= 0) {
+            wisRij(waar);
+        }
     }
 
     /**
