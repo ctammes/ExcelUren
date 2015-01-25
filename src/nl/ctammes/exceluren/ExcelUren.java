@@ -287,10 +287,10 @@ public class ExcelUren extends Excel {
     }
 
     /**
-     * Nieuwe taak toevoegen in het werkblad
+     * Taak toevoegen in het werkblad
      * @param taak
      */
-    public void nieuweTaakToevoegen(String taak) {
+    public void taakToevoegen(String taak) {
         int waar = bepaalRijNieuweTaak(taak);
         if (waar > 0) {
             invoegenRijOnder(waar, taak);

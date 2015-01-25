@@ -5,10 +5,8 @@ import nl.ctammes.common.Diversen;
 import nl.ctammes.common.Excel;
 import nl.ctammes.common.MijnLog;
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
@@ -405,10 +403,10 @@ public class ExcelUrenTest extends TestCase {
     }
 
     @Test
-    public void testNieuweTaakToevoegen() {
+    public void testTaakToevoegen() {
         uren.setLog(log);
         String naam = "Testproject";
-        uren.nieuweTaakToevoegen(naam);
+        uren.taakToevoegen(naam);
     }
 
     @Test
