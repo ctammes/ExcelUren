@@ -4,7 +4,10 @@ import junit.framework.TestCase;
 import nl.ctammes.common.Diversen;
 import nl.ctammes.common.Excel;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.junit.Test;
@@ -338,6 +341,23 @@ public class ExcelUrenTest extends TestCase {
     @Test
     public void testSheetnaam() {
         assertEquals(ExcelUren.sheetNaam(45), "CTS45.xls");
+    }
+
+    @Test
+    public void testInsertDeleteRow() {
+        HSSFSheet werkblad = uren.getWerkblad();
+
+        String taak = "Testproject";
+        int rij = uren.zoekTaakregel(taak);
+        assertEquals("voor insert", -1, rij);
+
+        uren.invoegenRijOnder(23, taak);
+        rij = uren.zoekTaakregel(taak);
+        assertEquals("na insert", 24, rij);
+
+        uren.wisRij(rij);
+        rij = uren.zoekTaakregel(taak);
+        assertEquals("na verwijder", -1, rij);
     }
 }
 

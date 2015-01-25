@@ -3,6 +3,8 @@ package nl.ctammes.exceluren;
 import nl.ctammes.common.Diversen;
 import nl.ctammes.common.Excel;
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
@@ -254,6 +256,47 @@ public class ExcelUren extends Excel {
             }
         }
         return results;
+    }
+
+    /**
+     * Rij invoegen in werkblad onder het aangegeven rijnummer
+     * @param rij
+     */
+    public void invoegenRijOnder(int rij, String taak) {
+        if ( rij >= 0 ) {
+            int keeprow = rij;
+            // bewaar oude rij
+            HSSFRow oude_rij = getWerkblad().getRow(rij);
+            // schuif alles 1 rij op en voeg nieuwe rij in
+            getWerkblad().shiftRows(rij + 1, getWerkblad().getLastRowNum(), 1);
+            HSSFRow nieuwe_rij = getWerkblad().createRow(rij + 1);
+
+            kopierenRij(oude_rij, nieuwe_rij, taak);
+        }
+    }
+
+    /**
+     * Kopieer gegevens van de oude rij naar de nieuwe rij
+     * @param oude_rij HSSFRow
+     * @param nieuwe_rij HSSFRow
+     */
+    private void kopierenRij(HSSFRow oude_rij, HSSFRow nieuwe_rij, String taak) {
+        // kopieer celeigenschappen van oude naar nieuwe rij
+        for (int kolom=0; kolom<oude_rij.getLastCellNum(); kolom++) {
+            HSSFCell oude_cel = oude_rij.getCell(kolom);
+            HSSFCell nieuwe_cel = nieuwe_rij.createCell(kolom);
+            nieuwe_cel.setCellType(oude_cel.getCellType());
+            if (kolom >= Weekdagen.MA.get() && kolom <= Weekdagen.ZO.get()) {
+                nieuwe_cel.setCellType(HSSFCell.CELL_TYPE_BLANK);
+            }
+            nieuwe_cel.setCellStyle(oude_cel.getCellStyle());
+        }
+        nieuwe_rij.getCell(0).setCellValue("PO");
+        nieuwe_rij.getCell(1).setCellValue(taak);
+        nieuwe_rij.getCell(Weekdagen.TOTAAL.get()).setCellFormula(String.format("I%1$d+H%1$d+G%1$d+E%1$d+F%1$d+D%1$d+C%1$d", nieuwe_rij.getRowNum() + 1));
+
+        schrijfWerkboek();
+
     }
 
     /**
