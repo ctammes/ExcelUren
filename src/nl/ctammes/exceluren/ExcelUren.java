@@ -287,6 +287,28 @@ public class ExcelUren extends Excel {
     }
 
     /**
+     * Geeft aan of er deze week tijden zijn ingevuld
+     * @param taak
+     * @return
+     */
+    public boolean zijnTaakDagenGevuld(String taak) {
+        // zoek projectregel op
+        int rijnum = zoekTaakregel(taak);
+
+        boolean result = false;
+        if (rijnum >= 0) {
+            for (int kol = Weekdagen.MA.get(); kol <= Weekdagen.ZO.get(); kol++) {
+                String tijd = leesCel(rijnum, kol);
+                if (!tijd.equals("") && (Double.parseDouble(tijd) > 0.0)) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
      * Taak toevoegen in het werkblad
      * @param taak
      */

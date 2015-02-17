@@ -416,6 +416,12 @@ public class ExcelUrenTest extends TestCase {
         uren.taakVerwijderen(naam);
     }
 
+    @Test
+    public void testZijnProjectDagenGevuld() {
+        System.out.println(uren.zijnTaakDagenGevuld("Mediq - Infokanaal"));
+        System.out.println(uren.zijnTaakDagenGevuld("Mediq - 3e lijn"));
+    }
+
 }
 
 
