@@ -327,10 +327,9 @@ public class ExcelUren extends Excel {
      */
     public void invoegenRijOnder(int rij, String taak) {
         if ( rij >= 0 ) {
-            // bewaar oude rij
-            HSSFRow oude_rij = getWerkblad().getRow(rij);
             // schuif alles 1 rij op en voeg nieuwe rij in
             getWerkblad().shiftRows(rij + 1, getWerkblad().getLastRowNum(), 1);
+            HSSFRow oude_rij = getWerkblad().getRow(rij);
             HSSFRow nieuwe_rij = getWerkblad().createRow(rij + 1);
 
             kopierenRij(oude_rij, nieuwe_rij, taak);
@@ -347,10 +346,9 @@ public class ExcelUren extends Excel {
      */
     public void invoegenRijBoven(int rij, String taak) {
         if ( rij >= 0 ) {
-            // bewaar oude rij
-            HSSFRow oude_rij = getWerkblad().getRow(rij);
             // schuif alles 1 rij op en voeg nieuwe rij in
             getWerkblad().shiftRows(rij, getWerkblad().getLastRowNum(), 1);
+            HSSFRow oude_rij = getWerkblad().getRow(rij + 1);
             HSSFRow nieuwe_rij = getWerkblad().createRow(rij);
 
             kopierenRij(oude_rij, nieuwe_rij, taak);

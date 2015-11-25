@@ -392,7 +392,7 @@ public class ExcelUrenTest extends TestCase {
     public void testInsertInTaken() {
         String naam = "Testproject";
 //        naam = "Zie hier aan het einde";
-//        naam = "Aaaaan het begin";
+        naam = "Aaaaan het begin";
 
         int rij = uren.bepaalRijNieuweTaak(naam);
         if (rij > 0) {
@@ -406,6 +406,10 @@ public class ExcelUrenTest extends TestCase {
     public void testTaakToevoegen() {
         uren.setLog(log);
         String naam = "Testproject";
+        naam = "Aaaaan het begin";
+        uren.taakToevoegen(naam);
+
+        naam = "Zzzz aan het einde";
         uren.taakToevoegen(naam);
     }
 
@@ -413,6 +417,10 @@ public class ExcelUrenTest extends TestCase {
     public void testTaakVerwijderen() {
         uren.setLog(log);
         String naam = "Testproject";
+        naam = "Aaaaan het begin";
+        uren.taakVerwijderen(naam);
+
+        naam = "Zzzz aan het einde";
         uren.taakVerwijderen(naam);
     }
 
