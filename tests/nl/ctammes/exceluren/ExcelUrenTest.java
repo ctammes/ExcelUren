@@ -141,6 +141,11 @@ public class ExcelUrenTest extends TestCase {
             System.out.printf("%3d %s %s %s\n", werkdag.getDag(), uren.tijdNaarTekst(werkdag.getTijd_in()), uren.tijdNaarTekst(werkdag.getTijd_uit()), uren.tijdNaarTekst(werkdag.getTijd_uit() - werkdag.getTijd_in()));
         }
 
+        Werkdag werkdag = tijden.get(1);
+        System.out.printf("\n%3d %s %s %s\n", werkdag.getDag(), uren.tijdNaarTekst(werkdag.getTijd_in()), uren.tijdNaarTekst(werkdag.getTijd_uit()), uren.tijdNaarTekst(werkdag.getTijd_uit() - werkdag.getTijd_in()));
+
+        werkdag = uren.leesWerkTijden().get(1);
+        System.out.printf("\n%3d %s %s %s\n", werkdag.getDag(), uren.tijdNaarTekst(werkdag.getTijd_in()), uren.tijdNaarTekst(werkdag.getTijd_uit()), uren.tijdNaarTekst(werkdag.getTijd_uit() - werkdag.getTijd_in()));
     }
 
     @Test

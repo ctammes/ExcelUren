@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,6 +58,25 @@ public class ExcelUren extends Excel {
             Row row = rowIterator.next();
             Cell cell = row.getCell(0);
             if (celWaarde(cell).toLowerCase().equals(project.toLowerCase())) {
+                rij = row.getRowNum();
+                break;
+            }
+        }
+        return rij;
+    }
+
+    /**
+     * Zoek de rij met de tijd_in
+     * @return rijnummer
+     */
+    public int zoekTijdinRegel() {
+
+        Iterator<Row> rowIterator = getWerkblad().iterator();
+        int rij = -1;
+        while(rowIterator.hasNext()) {
+            Row row = rowIterator.next();
+            Cell cell = row.getCell(0);
+            if (celWaarde(cell).toLowerCase().equals("tijd_in")) {
                 rij = row.getRowNum();
                 break;
             }
