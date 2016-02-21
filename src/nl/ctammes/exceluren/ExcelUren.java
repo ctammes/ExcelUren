@@ -352,7 +352,7 @@ public class ExcelUren extends Excel {
 
             kopierenRij(oude_rij, nieuwe_rij, taak);
             if (log != null) {
-                log.info(String.format("taak %s toevoegen onder rij %d", taak, rij));
+                log.info(String.format("Taak '%s' toevoegen onder rij %d", taak, rij));
             }
 
         }
@@ -371,7 +371,7 @@ public class ExcelUren extends Excel {
 
             kopierenRij(oude_rij, nieuwe_rij, taak);
             if (log != null) {
-                log.info(String.format("taak %s toevoegen boven rij %d", taak, rij));
+                log.info(String.format("Taak '%s' toevoegen boven rij %d", taak, rij));
             }
         }
     }
